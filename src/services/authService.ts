@@ -1,58 +1,6 @@
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  avatar?: string;
-}
-
-interface AuthResponse {
-  user: User;
-  token: string;
-}
+import { User, AuthResponse, googleLogin as apiGoogleLogin } from '@/api/auth';
 
 class AuthService {
-  private baseURL: string;
-
-  constructor() {
-    this.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-  }
-
-  async googleLogin(credential: string): Promise<AuthResponse> {
-    try {
-      const response = await fetch(`${this.baseURL}/auth/google/callback`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ credential }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Google authentication failed');
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Google login error:', error);
-      throw error;
-    }
-  }
-
-//   async getGoogleRedirectURL(): Promise<string> {
-//     try {
-//       const response = await fetch(`${this.baseURL}/auth/google/redirect`);
-//       if (!response.ok) {
-//         throw new Error('Failed to get Google redirect URL');
-//       }
-//       const data = await response.json();
-//       return data.url;
-//     } catch (error) {
-//       console.error('Error getting Google redirect URL:', error);
-//       throw error;
-//     }
-//   }
-
   // Save token to localStorage
   setToken(token: string): void {
     if (typeof window !== 'undefined') {
@@ -78,6 +26,17 @@ class AuthService {
   // Check if user is logged in
   isAuthenticated(): boolean {
     return !!this.getToken();
+  }
+
+  // Google login using API
+  async googleLogin(credential: string): Promise<AuthResponse> {
+    try {
+      const response = await apiGoogleLogin(credential);
+      return response.data;
+    } catch (error) {
+      console.error('Google login error:', error);
+      throw error;
+    }
   }
 }
 

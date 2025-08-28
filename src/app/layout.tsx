@@ -4,6 +4,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { SidebarProvider } from '@/context/SidebarContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { AuthProvider } from '@/context/AuthContext';
+import AuthGuard from '@/components/auth/AuthGuard';
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -20,7 +21,11 @@ export default function RootLayout({
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''}>
           <AuthProvider>
             <ThemeProvider>
-              <SidebarProvider>{children}</SidebarProvider>
+              <SidebarProvider>
+                <AuthGuard>
+                  {children}
+                </AuthGuard>
+              </SidebarProvider>
             </ThemeProvider>
           </AuthProvider>
         </GoogleOAuthProvider>
