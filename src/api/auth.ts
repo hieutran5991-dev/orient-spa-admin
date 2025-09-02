@@ -19,7 +19,7 @@ export interface AuthResponse {
     status: number;
 }
 
-export const getMe = async (): Promise<AxiosResponse<User>> => {
+export const getMe = async (): Promise<AxiosResponse<{data: User}>> => {
   return await request.get('auth/me');
 };
 

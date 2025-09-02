@@ -7,8 +7,10 @@ import { useSidebar } from "../context/SidebarContext";
 import {
   BoxCubeIcon,
   ChevronDownIcon,
+  GroupIcon,
   HorizontaLDots,
   PageIcon,
+  TableIcon,
   UserCircleIcon,
 } from "../icons/index";
 
@@ -22,19 +24,19 @@ type NavItem = {
 const navItems: NavItem[] = [
   {
     icon: <UserCircleIcon />,
-    name: "Users",
+    name: "User",
     subItems: [
-      { name: "Admins", path: "/user/admins" },
-      { name: "Staffs", path: "/user/staffs" },
+      { name: "Admins", path: "/user/admins", pro: false },
+      { name: "Staffs", path: "/user/staffs", pro: false },
     ],
   },
   {
-    icon: <BoxCubeIcon />,
+    icon: <GroupIcon />,
     name: "Agencies",
     path: "/agencies",
   },
   {
-    icon: <BoxCubeIcon />,
+    icon: <TableIcon />,
     name: "Categories",
     path: "/categories",
   },
@@ -45,9 +47,14 @@ const navItems: NavItem[] = [
   },
   {
     icon: <PageIcon />,
-    name: "Blogs",
-    path: "/blogs",
+    name: "Bookings",
+    path: "/bookings",
   },
+  // {
+  //   icon: <PageIcon />,
+  //   name: "Blogs",
+  //   path: "/blogs",
+  // },
 ];
 
 const AppSidebar: React.FC = () => {
@@ -240,19 +247,19 @@ const AppSidebar: React.FC = () => {
           !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
         }`}
       >
-        <Link href="/"> {/* TODO: Change to the correct logo */}
+        <Link href="/">
           {isExpanded || isHovered || isMobileOpen ? (
             <>
               <Image
                 className="dark:hidden"
-                src="/images/logo/logo.svg"
+                src="/images/logo/logo.png"
                 alt="Logo"
                 width={150}
                 height={40}
               />
               <Image
                 className="hidden dark:block"
-                src="/images/logo/logo-dark.svg"
+                src="/images/logo/logo.png"
                 alt="Logo"
                 width={150}
                 height={40}
@@ -260,10 +267,10 @@ const AppSidebar: React.FC = () => {
             </>
           ) : (
             <Image
-              src="/images/logo/logo-icon.svg"
+              src="/images/logo/logo.jpeg"
               alt="Logo"
-              width={32}
-              height={32}
+              width={40}
+              height={40}
             />
           )}
         </Link>

@@ -5,6 +5,7 @@ import { SidebarProvider } from '@/context/SidebarContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { AuthProvider } from '@/context/AuthContext';
 import AuthGuard from '@/components/auth/AuthGuard';
+import { AlertProvider } from '@/context/AlertContext';
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -19,15 +20,17 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${outfit.className} dark:bg-gray-900`}>
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''}>
-          <AuthProvider>
-            <ThemeProvider>
-              <SidebarProvider>
-                <AuthGuard>
-                  {children}
-                </AuthGuard>
-              </SidebarProvider>
-            </ThemeProvider>
-          </AuthProvider>
+          <AlertProvider>
+            <AuthProvider>
+              <ThemeProvider>
+                <SidebarProvider>
+                  <AuthGuard>
+                    {children}
+                  </AuthGuard>
+                </SidebarProvider>
+              </ThemeProvider>
+            </AuthProvider>
+          </AlertProvider>
         </GoogleOAuthProvider>
       </body>
     </html>

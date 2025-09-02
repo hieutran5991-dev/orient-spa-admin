@@ -1,10 +1,15 @@
+import { Agency } from "./agency";
+import { BookingStatus } from "@/constants/booking-status";
+
 export interface Booking {
   id: number;
   agency_id: number;
   booking_date: string;
   booking_time: string;
   number_of_people: number;
-  booking_details: string;
+  booking_details: {
+    [key: number]: BookingDetail[];
+  };
   first_name: string;
   last_name: string;
   email: string;
@@ -12,16 +17,25 @@ export interface Booking {
   note?: string;
   total_price: number;
   currency: string;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  status: BookingStatus;
   created_at?: string;
   updated_at?: string;
   
   // Relations
-  agency?: {
-    id: number;
-    name: string;
-    address: string;
-  };
+  agency?: Agency;
+}
+
+export interface BookingDetail {
+  id: number;
+  name: string;
+  description: string;
+  duration: string;
+  price: number;
+  currency: string;
+}
+
+export interface BookingListResponse {
+  data: Booking[];
 }
 
 export interface CreateBookingRequest {
@@ -41,17 +55,9 @@ export interface CreateBookingRequest {
 
 export interface UpdateBookingRequest extends Partial<CreateBookingRequest> {
   id: number;
-  status?: 0 | 1 | 2;
-}
-
-export interface BookingListResponse {
-  data: Booking[];
-  message: string;
-  status: number;
+  status?: BookingStatus;
 }
 
 export interface BookingResponse {
-  data: Booking;
-  message: string;
-  status: number;
+  data: Booking
 }

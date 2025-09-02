@@ -28,7 +28,10 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    // Initialize user from localStorage if available
+    return authService.getUser();
+  });
   const [isLoading, setIsLoading] = useState(true);
 
   const validateToken = async (): Promise<boolean> => {
@@ -40,7 +43,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const response = await getMe();
       if (response.status === 200) {
-        setUser(response.data);
+        setUser(response.data.data);
+        authService.setUser(response.data.data); // Save to localStorage
         return true;
       }
       return false;
@@ -73,8 +77,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
       const response = await authService.googleLogin(credential);
       
-      // Save token
+      // Save token and user data
       authService.setToken(response.data.token);
+      authService.setUser(response.data.user);
       
       // Update user state
       setUser(response.data.user);

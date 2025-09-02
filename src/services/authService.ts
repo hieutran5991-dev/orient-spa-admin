@@ -20,7 +20,31 @@ class AuthService {
   removeToken(): void {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('auth_token');
+      localStorage.removeItem('user_data');
     }
+  }
+
+  // Save user data to localStorage
+  setUser(user: User): void {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('user_data', JSON.stringify(user));
+    }
+  }
+
+  // Get user data from localStorage
+  getUser(): User | null {
+    if (typeof window !== 'undefined') {
+      const userData = localStorage.getItem('user_data');
+      if (userData) {
+        try {
+          return JSON.parse(userData);
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+          return null;
+        }
+      }
+    }
+    return null;
   }
 
   // Check if user is logged in
