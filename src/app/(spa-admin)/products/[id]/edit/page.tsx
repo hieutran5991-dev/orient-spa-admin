@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import EditProductForm from '@/components/products/EditProductForm';
 import { getCategoryOptions } from '@/api/category';
+import { CategoryOption } from '@/types/category';
 
 export const metadata: Metadata = {
   title: 'Edit Product - SPA Admin Dashboard',
@@ -14,7 +15,15 @@ export const metadata: Metadata = {
 };
 
 export default async function EditProductPage() {
-  const response = await getCategoryOptions();
+  let categories: CategoryOption[] = [];
   
-  return <EditProductForm categories={response.data.data ?? []} />;
+  try {
+    const response = await getCategoryOptions();
+    categories = response.data.data ?? [];
+  } catch (error) {
+    console.error('Failed to fetch categories:', error);
+    categories = [];
+  }
+  
+  return <EditProductForm categories={categories} />;
 }
