@@ -5,22 +5,32 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import PageBreadcrumb from '../common/PageBreadCrumb';
 import ComponentCard from '../common/ComponentCard';
+import { MultiLanguageInput } from '../form/MultiLanguageInput';
+import { MultiLanguageTextarea } from '../form/MultiLanguageTextarea';
 import { getAgency, updateAgency } from '@/api/agency';
-import { Agency } from '@/types/agency';
+import { Agency, MultiLanguageText } from '@/types/agency';
 import { validateAgencyForm, AgencyFormData, AgencyFormErrors } from '@/lib/validations';
 import { useAlert } from '@/context/AlertContext';
 import { AlertMessages, AlertConfigs } from '@/lib/alertMessages';
 import { HTTP_CODES } from '@/constants/http-codes';
+import { useLanguage } from '@/context/LanguageContext';
+import { MultiLanguageValue } from '@/types/language';
 
 export default function EditAgencyForm() {
   const router = useRouter();
   const params = useParams();
   const agencyId = params.id as string;
   const { showSuccess, showError } = useAlert();
+  const { availableLanguages } = useLanguage();
+
+  const initialMultiLanguageValue = availableLanguages.reduce((acc, language) => {
+    acc[language.code] = '';
+    return acc;
+  }, {} as MultiLanguageValue);
 
   const [formData, setFormData] = useState<AgencyFormData>({
-    name: '',
-    address: '',
+    name: initialMultiLanguageValue,
+    address: initialMultiLanguageValue,
     phone: '',
     email: '',
     open_time: '',
@@ -54,8 +64,14 @@ export default function EditAgencyForm() {
           
           // Populate form with existing data
           setFormData({
-            name: agencyData.name || '',
-            address: agencyData.address || '',
+            name: agencyData.translations.reduce((acc, translation) => {
+              acc[translation.language_code] = translation.name;
+              return acc;
+            }, {} as MultiLanguageValue),
+            address: agencyData.translations.reduce((acc, translation) => {
+              acc[translation.language_code] = translation.address;
+              return acc;
+            }, {} as MultiLanguageValue),
             phone: agencyData.phone || '',
             email: agencyData.email || '',
             open_time: agencyData.open_time || '',
@@ -104,6 +120,15 @@ export default function EditAgencyForm() {
     }
   };
 
+  const handleMultiLanguageChange = (field: 'name' | 'address', value: MultiLanguageValue) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Clear error when user starts typing
+    if (errors[field as keyof AgencyFormErrors]) {
+      setErrors(prev => ({ ...prev, [field]: undefined }));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -116,13 +141,20 @@ export default function EditAgencyForm() {
     try {
       const response = await updateAgency(parseInt(agencyId), {
         id: parseInt(agencyId),
-        name: formData.name.trim(),
-        address: formData.address.trim(),
         phone: formData.phone.trim(),
         email: formData.email.trim(),
         open_time: formData.open_time,
         close_time: formData.close_time,
         capacity: parseInt(formData.capacity),
+        translations: availableLanguages.reduce((acc, language) => {
+          if (formData.name[language.code] && formData.address[language.code]) {
+            acc[language.code] = {
+              name: formData.name[language.code],
+              address: formData.address[language.code],
+            };
+          }
+          return acc;
+        }, {} as MultiLanguageText),
       });
 
       if (response.status === HTTP_CODES.SUCCESS) {
@@ -198,7 +230,7 @@ export default function EditAgencyForm() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Edit Agency: {agency?.name}
+            Edit Agency: {agency?.name || 'Loading...'}
           </h1>
           <Link
             href="/agencies"
@@ -210,47 +242,26 @@ export default function EditAgencyForm() {
         
         <ComponentCard title="Agency Information">
           <form onSubmit={handleSubmit} className="space-y-6 p-6">
-            {/* Agency Name */}
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Agency Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                } bg-white dark:bg-gray-800 text-gray-900 dark:text-white`}
-                placeholder="Enter agency name"
-              />
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-              )}
-            </div>
+            {/* Agency Name - Multi Language */}
+            <MultiLanguageInput
+              label="Agency Name"
+              value={formData.name}
+              onChange={(value) => handleMultiLanguageChange('name', value)}
+              placeholder="Enter agency name"
+              required={true}
+              error={errors.name}
+            />
 
-            {/* Address */}
-            <div>
-              <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Address <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                id="address"
-                name="address"
-                value={formData.address}
-                onChange={handleInputChange}
-                rows={3}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.address ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                } bg-white dark:bg-gray-800 text-gray-900 dark:text-white`}
-                placeholder="Enter full address"
-              />
-              {errors.address && (
-                <p className="mt-1 text-sm text-red-600">{errors.address}</p>
-              )}
-            </div>
+            {/* Agency Address - Multi Language */}
+            <MultiLanguageTextarea
+              label="Agency Address"
+              value={formData.address}
+              onChange={(value) => handleMultiLanguageChange('address', value)}
+              placeholder="Enter agency address"
+              required={true}
+              error={errors.address}
+              rows={3}
+            />
 
             {/* Phone and Email Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

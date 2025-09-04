@@ -1,3 +1,5 @@
+import { MultiLanguageValue } from '@/types/language';
+
 // Email validation
 export const validateEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -34,8 +36,8 @@ export const validateRequired = (value: string): boolean => {
 
 // Agency form validation
 export interface AgencyFormData {
-  name: string;
-  address: string;
+  name: MultiLanguageValue;
+  address: MultiLanguageValue;
   phone: string;
   email: string;
   open_time: string;
@@ -56,12 +58,12 @@ export interface AgencyFormErrors {
 export const validateAgencyForm = (formData: AgencyFormData): AgencyFormErrors => {
   const errors: AgencyFormErrors = {};
 
-  // Required field validation
-  if (!validateRequired(formData.name)) {
+  // Required fields validation
+  if (!validateRequired(formData.name.en)) {
     errors.name = 'Agency name is required';
   }
 
-  if (!validateRequired(formData.address)) {
+  if (!validateRequired(formData.address.en)) {
     errors.address = 'Address is required';
   }
 

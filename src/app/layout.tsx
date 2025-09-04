@@ -6,6 +6,8 @@ import { ThemeProvider } from '@/context/ThemeContext';
 import { AuthProvider } from '@/context/AuthContext';
 import AuthGuard from '@/components/auth/AuthGuard';
 import { AlertProvider } from '@/context/AlertContext';
+import { LanguageProvider } from '@/context/LanguageContext';
+import AlertContainer from '@/components/common/AlertContainer';
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -22,13 +24,16 @@ export default function RootLayout({
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''}>
           <AlertProvider>
             <AuthProvider>
-              <ThemeProvider>
-                <SidebarProvider>
-                  <AuthGuard>
-                    {children}
-                  </AuthGuard>
-                </SidebarProvider>
-              </ThemeProvider>
+              <LanguageProvider>
+                <ThemeProvider>
+                  <SidebarProvider>
+                    <AuthGuard>
+                      <AlertContainer />
+                      {children}
+                    </AuthGuard>
+                  </SidebarProvider>
+                </ThemeProvider>
+              </LanguageProvider>
             </AuthProvider>
           </AlertProvider>
         </GoogleOAuthProvider>
