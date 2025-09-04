@@ -14,6 +14,10 @@ interface MultiLanguageInputProps {
   required?: boolean;
   error?: string;
   className?: string;
+  type?: 'text' | 'number' | 'email' | 'password';
+  min?: number;
+  max?: number;
+  step?: number;
 }
 
 export const MultiLanguageInput: React.FC<MultiLanguageInputProps> = ({
@@ -24,15 +28,16 @@ export const MultiLanguageInput: React.FC<MultiLanguageInputProps> = ({
   required = false,
   error,
   className = '',
+  type = 'text',
+  min,
+  max,
+  step,
 }) => {
   const { availableLanguages, defaultLanguage } = useLanguage();
   const [activeTab, setActiveTab] = useState<string>(defaultLanguage.code);
 
   const handleInputChange = (languageCode: string, inputValue: string) => {
-    const newValue = {
-      ...value,
-      [languageCode]: inputValue,
-    };
+    const newValue = { ...value, [languageCode]: inputValue };
     onChange(newValue);
   };
 
@@ -45,7 +50,7 @@ export const MultiLanguageInput: React.FC<MultiLanguageInputProps> = ({
 
   return (
     <div className={`space-y-3 ${className}`}>
-      <Label htmlFor={`${label}-${activeTab}`} className="text-theme-sm font-medium text-gray-700 dark:text-gray-300">
+      <Label htmlFor={`${label.toLowerCase().replace(/\s+/g, '-')}-${activeTab}`} className="text-theme-sm font-medium text-gray-700 dark:text-gray-300">
         {label}
         {required && <span className="text-red-500 ml-1">*</span>}
       </Label>
@@ -74,9 +79,12 @@ export const MultiLanguageInput: React.FC<MultiLanguageInputProps> = ({
       {/* Input Field */}
       <div className="relative">
         <input
-          key={`${label}-${activeTab}`}
-          id={`${label}-${activeTab}`}
-          type="text"
+          key={`${label.toLowerCase().replace(/\s+/g, '-')}-${activeTab}`}
+          id={`${label.toLowerCase().replace(/\s+/g, '-')}-${activeTab}`}
+          type={type}
+          min={min}
+          max={max}
+          step={step}
           value={getInputValue(activeTab)}
           onChange={(e) => handleInputChange(activeTab, e.target.value)}
           placeholder={`${placeholder} (${availableLanguages.find(lang => lang.code === activeTab)?.name})`}

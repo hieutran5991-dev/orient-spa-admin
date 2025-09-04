@@ -137,15 +137,15 @@ export const validateCategoryForm = (formData: CategoryFormData): CategoryFormEr
 
 // Product form validation
 export interface ProductFormData {
-  name: string;
-  description: string;
+  name: MultiLanguageValue;
+  description: MultiLanguageValue;
   category_id: string;
   duration: string;
-  price: string;
-  currency: string;
+  price: MultiLanguageValue;
+  currency: MultiLanguageValue;
   is_promoted: boolean;
-  promotion_description?: string;
-  promotion_details?: string;
+  promotion_description?: MultiLanguageValue;
+  promotion_details?: MultiLanguageValue;
 }
 
 export interface ProductFormErrors {
@@ -162,12 +162,12 @@ export interface ProductFormErrors {
 export const validateProductForm = (formData: ProductFormData): ProductFormErrors => {
   const errors: ProductFormErrors = {};
 
-  if (!validateRequired(formData.name)) {
+  if (!validateRequired(formData.name.en)) {
     errors.name = 'Product name is required';
   }
 
-  if (!validateRequired(formData.description)) {
-    errors.description = 'Description is required';
+  if (!validateRequired(formData.description.en)) {
+    errors.description = 'Product description is required';
   }
 
   if (!validateRequired(formData.category_id)) {
@@ -185,22 +185,22 @@ export const validateProductForm = (formData: ProductFormData): ProductFormError
     }
   }
 
-  if (!validateRequired(formData.price)) {
+  if (!validateRequired(formData.price.en)) {
     errors.price = 'Price is required';
-  } else if (!validatePositiveNumber(formData.price)) {
+  } else if (!validatePositiveNumber(formData.price.en)) {
     errors.price = 'Price must be a positive number';
   }
 
-  if (!validateRequired(formData.currency)) {
+  if (!validateRequired(formData.currency.en)) {
     errors.currency = 'Currency is required';
   }
 
   // Promotion fields validation
   if (formData.is_promoted) {
-    if (!validateRequired(formData.promotion_description || '')) {
+    if (!validateRequired(formData.promotion_description?.en || '')) {
       errors.promotion_description = 'Promotion description is required when product is promoted';
     }
-    if (!validateRequired(formData.promotion_details || '')) {
+    if (!validateRequired(formData.promotion_details?.en || '')) {
       errors.promotion_details = 'Promotion details is required when product is promoted';
     }
   }

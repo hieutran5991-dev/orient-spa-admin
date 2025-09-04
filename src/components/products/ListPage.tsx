@@ -11,6 +11,7 @@ import { HTTP_CODES } from "@/constants/http-codes";
 import PencilIcon from "@/icons/pencil.svg";
 import TrashIcon from "@/icons/trash.svg";
 import { CategoryOption } from "@/types/category";
+import { LANGUAGES } from "@/constants/languages";
 
 export default function ListPage({ products, categories, isError }: { products: Product[], categories: CategoryOption[], isError: boolean }) {
   const { showSuccess, showError, showWarning } = useAlert();
@@ -22,6 +23,30 @@ export default function ListPage({ products, categories, isError }: { products: 
       header: 'Product Name',
       sortable: true,
       width: '25%',
+      render: (value: unknown, row: Record<string, unknown>) => {
+        const product = row as unknown as Product;
+        return (
+          <div className="space-y-1">
+            <div className="font-medium text-gray-900 dark:text-white">
+              {product.name}
+            </div>
+            {product.translations && product.translations.length > 0 && (
+              <div className="text-xs text-gray-500 dark:text-gray-400 space-y-0.5">
+                {product.translations
+                  .filter(t => t.language_code !== LANGUAGES.EN)
+                  .map((translation, index) => (
+                    <div key={index} className="flex items-center space-x-1">
+                      <span className="text-xs font-medium">
+                        {translation.language_code.toUpperCase()}:
+                      </span>
+                      <span>{translation.name}</span>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: 'category_id',
@@ -29,7 +54,7 @@ export default function ListPage({ products, categories, isError }: { products: 
       sortable: true,
       width: '20%',
       render: (value: unknown) => (
-        <span>{categories.find(category => category.id === value)?.name}</span>
+        <span className="font-medium text-gray-700 dark:text-gray-300">{categories.find(category => category.id === value)?.name}</span>
       ),
     },
     {
@@ -43,9 +68,33 @@ export default function ListPage({ products, categories, isError }: { products: 
     },
     {
       key: 'price',
-      header: 'Price (VND)',
+      header: 'Price',
       sortable: true,
-      width: '10%',
+      width: '15%',
+      render: (value: unknown, row: Record<string, unknown>) => {
+        const product = row as unknown as Product;
+        return (
+          <div className="space-y-1">
+            <div className="font-medium text-gray-900 dark:text-white">
+              {product.price} {product.currency}
+            </div>
+            {product.translations && product.translations.length > 0 && (
+              <div className="text-xs text-gray-500 dark:text-gray-400 space-y-0.5">
+                {product.translations
+                  .filter(t => t.language_code !== LANGUAGES.EN)
+                  .map((translation, index) => (
+                    <div key={index} className="flex items-center space-x-1">
+                      <span className="text-xs font-medium">
+                        {translation.language_code.toUpperCase()}:
+                      </span>
+                      <span>{translation.price} {translation.currency}</span>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: 'is_promoted',
@@ -53,8 +102,8 @@ export default function ListPage({ products, categories, isError }: { products: 
       sortable: true,
       width: '8%',
       render: (value: unknown) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          value ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+          value ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
         }`}>
           {value ? 'Yes' : 'No'}
         </span>
@@ -64,7 +113,7 @@ export default function ListPage({ products, categories, isError }: { products: 
       key: 'actions',
       header: 'Actions',
       sortable: false,
-      width: '19%',
+      width: '12%',
       render: (value: unknown, row: Record<string, unknown>) => (
         <div className="flex items-center space-x-2">
           <Link
