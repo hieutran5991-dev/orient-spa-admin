@@ -135,7 +135,7 @@ export default function ListPage({ bookings, isError }: { bookings: Booking[], i
       sortable: true,
       width: '15%',
       render: (value: unknown, row: Record<string, unknown>) => (
-        <span className="font-medium">
+        <span className="font-medium text-gray-700 dark:text-gray-300">
           {String(value)} {row.last_name as string}
         </span>
       ),
@@ -158,7 +158,7 @@ export default function ListPage({ bookings, isError }: { bookings: Booking[], i
       sortable: true,
       width: '10%',
       render: (value: unknown) => (
-        <span className="font-medium text-blue-600">
+        <span className="font-medium text-blue-600 dark:text-blue-400">
           {new Date(String(value)).toLocaleDateString()}
         </span>
       ),
@@ -175,7 +175,7 @@ export default function ListPage({ bookings, isError }: { bookings: Booking[], i
       sortable: true,
       width: '8%',
       render: (value: unknown) => (
-        <span className="font-medium text-green-600">{String(value)}</span>
+        <span className="font-medium text-green-600 dark:text-green-400">{String(value)}</span>
       ),
     },
     {

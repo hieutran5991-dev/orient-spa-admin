@@ -153,7 +153,7 @@ export default function DataTable({
     }
     
     if (typeof value === "number") {
-      return <span className="font-medium">{value.toLocaleString()}</span>;
+      return <span className="font-medium text-gray-700 dark:text-gray-300">{value.toLocaleString()}</span>;
     }
     
     return <span className="text-gray-800 dark:text-white/90">{String(value)}</span>;
