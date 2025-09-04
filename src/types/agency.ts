@@ -1,4 +1,4 @@
-export interface MultiLanguageText {
+export interface AgencyLanguages {
   [languageCode: string]: {
     name: string;
     address: string;
@@ -16,10 +16,10 @@ export interface Agency {
   capacity: number;
   created_at?: string;
   updated_at?: string;
-  translations: MultiLanguage[];
+  translations: AgencyLanguage[];
 }
 
-export interface MultiLanguage {
+export interface AgencyLanguage {
   language_code: string;
   name: string;
   address: string;
@@ -42,17 +42,11 @@ export interface CreateAgencyRequest {
   open_time: string;
   close_time: string;
   capacity: number;
-  translations: MultiLanguageText;
+  translations: AgencyLanguages;
 }
 
 export interface UpdateAgencyRequest extends Partial<CreateAgencyRequest> {
   id: number;
-  phone: string;
-  email: string;
-  open_time: string;
-  close_time: string;
-  capacity: number;
-  translations: MultiLanguageText;
 }
 
 export interface AgencyResponse {

@@ -1,12 +1,27 @@
+export interface CategoryLanguages {
+  [languageCode: string]: {
+    name: string;
+    description: string;
+  };
+}
+
 export interface Category {
   id: number;
   name: string;
   description: string;
   created_at?: string;
   updated_at?: string;
+  translations: CategoryLanguage[];
+}
+
+export interface CategoryLanguage {
+  language_code: string;
+  name: string;
+  description: string;
 }
 
 export interface CategoryListResponse {
+  message: string;
   data: Category[];
 }
 
@@ -16,12 +31,12 @@ export interface CategoryOption {
 }
 
 export interface CategoryOptionsResponse {
+  message: string;
   data: CategoryOption[];
 }
 
 export interface CreateCategoryRequest {
-  name: string;
-  description: string;
+  translations: CategoryLanguages;
 }
 
 export interface UpdateCategoryRequest extends Partial<CreateCategoryRequest> {
@@ -29,6 +44,7 @@ export interface UpdateCategoryRequest extends Partial<CreateCategoryRequest> {
 }
 
 export interface CategoryResponse {
+  message: string;
   data: Category;
 }
 

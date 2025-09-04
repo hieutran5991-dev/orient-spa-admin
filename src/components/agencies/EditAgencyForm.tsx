@@ -8,7 +8,7 @@ import ComponentCard from '../common/ComponentCard';
 import { MultiLanguageInput } from '../form/MultiLanguageInput';
 import { MultiLanguageTextarea } from '../form/MultiLanguageTextarea';
 import { getAgency, updateAgency } from '@/api/agency';
-import { Agency, MultiLanguageText } from '@/types/agency';
+import { Agency, AgencyLanguages } from '@/types/agency';
 import { validateAgencyForm, AgencyFormData, AgencyFormErrors } from '@/lib/validations';
 import { useAlert } from '@/context/AlertContext';
 import { AlertMessages, AlertConfigs } from '@/lib/alertMessages';
@@ -154,7 +154,7 @@ export default function EditAgencyForm() {
             };
           }
           return acc;
-        }, {} as MultiLanguageText),
+        }, {} as AgencyLanguages),
       });
 
       if (response.status === HTTP_CODES.SUCCESS) {

@@ -12,7 +12,7 @@ import { validateAgencyForm, AgencyFormData, AgencyFormErrors } from '@/lib/vali
 import { useAlert } from '@/context/AlertContext';
 import { AlertMessages, AlertConfigs } from '@/lib/alertMessages';
 import { HTTP_CODES } from '@/constants/http-codes';
-import { MultiLanguageText } from '@/types/agency';
+import { AgencyLanguages } from '@/types/agency';
 import { useLanguage } from '@/context/LanguageContext';
 import { MultiLanguageValue } from '@/types/language';
 
@@ -88,7 +88,7 @@ export default function CreateAgencyForm() {
             };
           }
           return acc;
-        }, {} as MultiLanguageText),
+        }, {} as AgencyLanguages),
       });
 
       if (response.status === HTTP_CODES.CREATED) {

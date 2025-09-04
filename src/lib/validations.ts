@@ -25,13 +25,18 @@ export const validateTimeRange = (openTime: string, closeTime: string): boolean 
 
 // Number validation - check if value is a positive number
 export const validatePositiveNumber = (value: string): boolean => {
-  const num = Number(value);
+  const num = parseFloat(value);
   return !isNaN(num) && num > 0;
 };
 
 // Required field validation
 export const validateRequired = (value: string): boolean => {
   return value.trim().length > 0;
+};
+
+export const validateTimeFormat = (time: string): boolean => {
+  const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+  return timeRegex.test(time);
 };
 
 // Agency form validation
@@ -80,11 +85,15 @@ export const validateAgencyForm = (formData: AgencyFormData): AgencyFormErrors =
   }
 
   if (!validateRequired(formData.open_time)) {
-    errors.open_time = 'Open time is required';
+    errors.open_time = 'Opening time is required';
+  } else if (!validateTimeFormat(formData.open_time)) {
+    errors.open_time = 'Please enter a valid time format (HH:MM)';
   }
 
   if (!validateRequired(formData.close_time)) {
-    errors.close_time = 'Close time is required';
+    errors.close_time = 'Closing time is required';
+  } else if (!validateTimeFormat(formData.close_time)) {
+    errors.close_time = 'Please enter a valid time format (HH:MM)';
   }
 
   if (!validateRequired(formData.capacity)) {
@@ -103,8 +112,8 @@ export const validateAgencyForm = (formData: AgencyFormData): AgencyFormErrors =
 
 // Category form validation
 export interface CategoryFormData {
-  name: string;
-  description: string;
+  name: MultiLanguageValue;
+  description: MultiLanguageValue;
 }
 
 export interface CategoryFormErrors {
@@ -115,8 +124,12 @@ export interface CategoryFormErrors {
 export const validateCategoryForm = (formData: CategoryFormData): CategoryFormErrors => {
   const errors: CategoryFormErrors = {};
 
-  if (!validateRequired(formData.name)) {
+  if (!validateRequired(formData.name.en)) {
     errors.name = 'Category name is required';
+  }
+
+  if (!validateRequired(formData.description.en)) {
+    errors.description = 'Category description is required';
   }
 
   return errors;
@@ -190,100 +203,6 @@ export const validateProductForm = (formData: ProductFormData): ProductFormError
     if (!validateRequired(formData.promotion_details || '')) {
       errors.promotion_details = 'Promotion details is required when product is promoted';
     }
-  }
-
-  return errors;
-};
-
-// Booking form validation
-export interface BookingFormData {
-  agency_id: string;
-  booking_date: string;
-  booking_time: string;
-  number_of_people: string;
-  booking_details: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
-  note?: string;
-  total_price: string;
-  currency: string;
-  status: string;
-}
-
-export interface BookingFormErrors {
-  agency_id?: string;
-  booking_date?: string;
-  booking_time?: string;
-  number_of_people?: string;
-  booking_details?: string;
-  first_name?: string;
-  last_name?: string;
-  email?: string;
-  phone?: string;
-  total_price?: string;
-  currency?: string;
-  status?: string;
-}
-
-export const validateBookingForm = (formData: BookingFormData): BookingFormErrors => {
-  const errors: BookingFormErrors = {};
-
-  if (!validateRequired(formData.agency_id)) {
-    errors.agency_id = 'Agency is required';
-  }
-
-  if (!validateRequired(formData.booking_date)) {
-    errors.booking_date = 'Booking date is required';
-  }
-
-  if (!validateRequired(formData.booking_time)) {
-    errors.booking_time = 'Booking time is required';
-  }
-
-  if (!validateRequired(formData.number_of_people)) {
-    errors.number_of_people = 'Number of people is required';
-  } else if (!validatePositiveNumber(formData.number_of_people)) {
-    errors.number_of_people = 'Number of people must be a positive number';
-  }
-
-  if (!validateRequired(formData.booking_details)) {
-    errors.booking_details = 'Booking details is required';
-  }
-
-  if (!validateRequired(formData.first_name)) {
-    errors.first_name = 'First name is required';
-  }
-
-  if (!validateRequired(formData.last_name)) {
-    errors.last_name = 'Last name is required';
-  }
-
-  if (!validateRequired(formData.email)) {
-    errors.email = 'Email is required';
-  } else if (!validateEmail(formData.email)) {
-    errors.email = 'Please enter a valid email address';
-  }
-
-  if (!validateRequired(formData.phone)) {
-    errors.phone = 'Phone number is required';
-  } else if (!validatePhone(formData.phone)) {
-    errors.phone = 'Please enter a valid phone number';
-  }
-
-  if (!validateRequired(formData.total_price)) {
-    errors.total_price = 'Total price is required';
-  } else if (!validatePositiveNumber(formData.total_price)) {
-    errors.total_price = 'Total price must be a positive number';
-  }
-
-  if (!validateRequired(formData.currency)) {
-    errors.currency = 'Currency is required';
-  }
-
-  if (!validateRequired(formData.status)) {
-    errors.status = 'Status is required';
   }
 
   return errors;

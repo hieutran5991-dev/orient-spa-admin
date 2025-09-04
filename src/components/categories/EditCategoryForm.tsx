@@ -6,21 +6,31 @@ import Link from 'next/link';
 import PageBreadcrumb from '../common/PageBreadCrumb';
 import ComponentCard from '../common/ComponentCard';
 import { getCategory, updateCategory } from '@/api/category';
-import { Category } from '@/types/category';
+import { Category, CategoryLanguages  } from '@/types/category';
 import { validateCategoryForm, CategoryFormData, CategoryFormErrors } from '@/lib/validations';
 import { useAlert } from '@/context/AlertContext';
 import { AlertMessages, AlertConfigs } from '@/lib/alertMessages';
 import { HTTP_CODES } from '@/constants/http-codes';
+import { MultiLanguageInput } from '../form/MultiLanguageInput';
+import { MultiLanguageTextarea } from '../form/MultiLanguageTextarea';
+import { MultiLanguageValue } from '@/types/language';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function EditCategoryForm() {
   const router = useRouter();
   const params = useParams();
   const categoryId = params.id as string;
   const { showSuccess, showError } = useAlert();
+  const { availableLanguages } = useLanguage();
+
+  const initialMultiLanguageValue = availableLanguages.reduce((acc, language) => {
+    acc[language.code] = '';
+    return acc;
+  }, {} as MultiLanguageValue);
 
   const [formData, setFormData] = useState<CategoryFormData>({
-    name: '',
-    description: '',
+    name: initialMultiLanguageValue,
+    description: initialMultiLanguageValue,
   });
 
   const [errors, setErrors] = useState<CategoryFormErrors>({});
@@ -40,8 +50,14 @@ export default function EditCategoryForm() {
           const categoryData = response.data.data;
           setCategory(categoryData);
           setFormData({
-            name: categoryData.name || '',
-            description: categoryData.description || '',
+            name: categoryData.translations.reduce((acc, translation) => {
+              acc[translation.language_code] = translation.name;
+              return acc;
+            }, {} as MultiLanguageValue),
+            description: categoryData.translations.reduce((acc, translation) => {
+              acc[translation.language_code] = translation.description;
+              return acc;
+            }, {} as MultiLanguageValue),
           });
         } else {
           setLoadError('Category not found');
@@ -75,13 +91,10 @@ export default function EditCategoryForm() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
-    // Clear error when user starts typing
-    if (errors[name as keyof CategoryFormErrors]) {
-      setErrors(prev => ({ ...prev, [name]: undefined }));
+  const handleMultiLanguageChange = (field: 'name' | 'description', value: MultiLanguageValue) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field as keyof CategoryFormErrors]) {
+      setErrors(prev => ({ ...prev, [field]: undefined }));
     }
   };
 
@@ -97,8 +110,15 @@ export default function EditCategoryForm() {
     try {
       const response = await updateCategory(parseInt(categoryId), {
         id: parseInt(categoryId),
-        name: formData.name.trim(),
-        description: formData.description.trim(),
+        translations: availableLanguages.reduce((acc, language) => {
+          if (formData.name[language.code] && formData.description[language.code]) {
+            acc[language.code] = {
+              name: formData.name[language.code],
+              description: formData.description[language.code],
+            };
+          }
+          return acc;
+        }, {} as CategoryLanguages),
       });
 
       if (response.status === HTTP_CODES.SUCCESS) {
@@ -177,47 +197,25 @@ export default function EditCategoryForm() {
         <ComponentCard title="Edit Category Information">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Name Field */}
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Category Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${
-                  errors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Enter category name"
-                required
-              />
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-500">{errors.name}</p>
-              )}
-            </div>
+            <MultiLanguageInput
+              label="Category Name"
+              value={formData.name}
+              onChange={(value) => handleMultiLanguageChange('name', value)}
+              placeholder="Enter category name"
+              required={true}
+              error={errors.name}
+            />
 
             {/* Description Field */}
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Description
-              </label>
-              <textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                rows={4}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${
-                  errors.description ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Enter category description (optional)"
-              />
-              {errors.description && (
-                <p className="mt-1 text-sm text-red-500">{errors.description}</p>
-              )}
-            </div>
+            <MultiLanguageTextarea
+              label="Category Description"
+              value={formData.description}
+              onChange={(value) => handleMultiLanguageChange('description', value)}
+              placeholder="Enter category description"
+              required={true}
+              error={errors.description}
+              rows={4}
+            />
 
             {/* Form Actions */}
             <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
