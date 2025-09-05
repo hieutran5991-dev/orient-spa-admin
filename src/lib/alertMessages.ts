@@ -67,6 +67,10 @@ export const AlertMessages: {
       title: 'Login Successful!',
       message: 'Welcome back! You have been logged in successfully.'
     },
+    SETTINGS_UPDATED: {
+      title: 'Settings Updated Successfully!',
+      message: 'The settings have been updated and saved.'
+    },
   },
 
   // Error messages
@@ -130,7 +134,11 @@ export const AlertMessages: {
     SESSION_EXPIRED: {
       title: 'Session Expired',
       message: 'Your session has expired. Please log in again.'
-    }
+    },
+    SETTINGS_UPDATE_ERROR: {
+      title: 'Settings Update Error',
+      message: 'Failed to update the settings. Please check your input and try again.'
+    },
   },
 
   // Warning messages
@@ -166,7 +174,11 @@ export const AlertMessages: {
     TIME_CONFLICT: {
       title: 'Time Conflict',
       message: 'This time slot is already booked. Please choose a different time.'
-    }
+    },
+    SETTINGS_UPDATE_WARNING: {
+      title: 'Settings Update Warning',
+      message: 'Are you sure you want to update the settings? This action cannot be undone.'
+    },
   },
 };
 

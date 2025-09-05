@@ -1,0 +1,23 @@
+export const SETTING_KEYS = {
+  PHONE_NUMBER: 'PHONE_NUMBER',
+  CONTACT_EMAIL: 'CONTACT_EMAIL',
+  LINE_INFO: 'LINE_INFO',
+  KAKAO_TALK_INFO: 'KAKAO_TALK_INFO',
+  NOTIFY_MAIL: 'NOTIFY_MAIL',
+} as const;
+
+export const SETTING_LABELS = {
+  [SETTING_KEYS.PHONE_NUMBER]: 'Spa Phone Number',
+  [SETTING_KEYS.CONTACT_EMAIL]: 'Spa Contact Email',
+  [SETTING_KEYS.LINE_INFO]: 'Spa Line Info',
+  [SETTING_KEYS.KAKAO_TALK_INFO]: 'Spa Kakao Talk Info',
+  [SETTING_KEYS.NOTIFY_MAIL]: 'Spa BookingNotify Mail',
+} as const;
+
+export const SETTING_VALIDATIONS = {
+  [SETTING_KEYS.PHONE_NUMBER]: 'phone',
+  [SETTING_KEYS.CONTACT_EMAIL]: 'email',
+  [SETTING_KEYS.LINE_INFO]: 'text',
+  [SETTING_KEYS.KAKAO_TALK_INFO]: 'text',
+  [SETTING_KEYS.NOTIFY_MAIL]: 'email',
+} as const;
