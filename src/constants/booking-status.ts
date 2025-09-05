@@ -66,13 +66,6 @@ export const BOOKING_STATUS_LABELS = {
   [BOOKING_STATUS.CANCELLED]: 'Cancelled',
 } as const;
 
-// Status Options for Select/Dropdown
-export const BOOKING_STATUS_OPTIONS = [
-  { value: BOOKING_STATUS.BOOKED, label: BOOKING_STATUS_LABELS[BOOKING_STATUS.BOOKED] },
-  { value: BOOKING_STATUS.DONE, label: BOOKING_STATUS_LABELS[BOOKING_STATUS.DONE] },
-  { value: BOOKING_STATUS.CANCELLED, label: BOOKING_STATUS_LABELS[BOOKING_STATUS.CANCELLED] },
-] as const;
-
 // Status Transition Logic
 export const getAvailableStatusTransitions = (
   currentStatus: BookingStatus, 
@@ -102,3 +95,10 @@ export const getAvailableStatusTransitions = (
     }
   }
 };
+
+export const BOOKING_STATUS_OPTIONS = [
+  { value: 'all', label: 'All Statuses' },
+  { value: BOOKING_STATUS.BOOKED.toString(), label: BOOKING_STATUS_LABELS[BOOKING_STATUS.BOOKED] },
+  { value: BOOKING_STATUS.DONE.toString(), label: BOOKING_STATUS_LABELS[BOOKING_STATUS.DONE] },
+  { value: BOOKING_STATUS.CANCELLED.toString(), label: BOOKING_STATUS_LABELS[BOOKING_STATUS.CANCELLED] },
+];

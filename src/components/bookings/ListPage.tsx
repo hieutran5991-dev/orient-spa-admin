@@ -11,14 +11,16 @@ import {
   shouldShowExpired, 
   EXPIRED_STATUS_CONFIG,
   BookingStatus,
-  BOOKING_STATUS,
-  BOOKING_STATUS_LABELS
+  BOOKING_STATUS_OPTIONS
 } from "@/constants/booking-status";
 import StatusChangeModal from "./StatusChangeModal";
 import { updateBookingStatus } from "@/api/booking";
 import { useAlert } from "@/context/AlertContext";
 import { AlertMessages, AlertConfigs } from "@/lib/alertMessages";
 import { HTTP_CODES } from "@/constants/http-codes";
+import DatePicker from "../form/date-picker";
+import Select from "../form/Select";
+import { createEndOfDay, createStartOfDay, formatDateForDisplay } from "@/lib/datetime";
 
 export default function ListPage({ bookings, isError }: { bookings: Booking[], isError: boolean }) {
   const { showSuccess, showError } = useAlert();
@@ -27,11 +29,11 @@ export default function ListPage({ bookings, isError }: { bookings: Booking[], i
   
   // Filter states
   const [dateRange, setDateRange] = useState<{
-    startDate: string;
-    endDate: string;
+    startDate: Date | null;
+    endDate: Date | null;
   }>({
-    startDate: '',
-    endDate: ''
+    startDate: null,
+    endDate: null
   });
   const [statusFilter, setStatusFilter] = useState<BookingStatus | 'all'>('all');
 
@@ -42,18 +44,17 @@ export default function ListPage({ bookings, isError }: { bookings: Booking[], i
     // Filter by date range
     if (dateRange.startDate || dateRange.endDate) {
       filtered = filtered.filter(booking => {
-        const bookingDate = new Date(booking.created_at || booking.booking_date);
+        const bookingDate = new Date(booking.booking_date);
         let isInRange = true;
 
         if (dateRange.startDate) {
-          const startDate = new Date(dateRange.startDate);
+          const startDate = createStartOfDay(dateRange.startDate);
           isInRange = bookingDate >= startDate;
         }
 
         if (dateRange.endDate) {
-          const endDate = new Date(dateRange.endDate);
-          endDate.setHours(23, 59, 59, 999); // Include the entire end date
-          isInRange = bookingDate <= endDate;
+          const endDate = createEndOfDay(dateRange.endDate);
+          isInRange = isInRange && bookingDate <= endDate;
         }
 
         return isInRange;
@@ -69,19 +70,21 @@ export default function ListPage({ bookings, isError }: { bookings: Booking[], i
   }, [bookings, dateRange, statusFilter]);
 
   // Handle filter changes
-  const handleDateRangeChange = (field: 'startDate' | 'endDate', value: string) => {
-    setDateRange(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  const handleDateRangeChange = (field: 'startDate' | 'endDate', selectedDates: Date[]) => {
+    if (selectedDates && selectedDates.length > 0) {
+      setDateRange(prev => ({
+        ...prev,
+        [field]: selectedDates[0]
+      }));
+    }
   };
 
-  const handleStatusFilterChange = (value: BookingStatus | 'all') => {
-    setStatusFilter(value);
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value === 'all' ? 'all' : parseInt(value) as BookingStatus);
   };
 
   const clearFilters = () => {
-    setDateRange({ startDate: '', endDate: '' });
+    setDateRange({ startDate: null, endDate: null });
     setStatusFilter('all');
   };
 
@@ -115,13 +118,12 @@ export default function ListPage({ bookings, isError }: { bookings: Booking[], i
     }
   };
 
-  // Open status change modal
+  // Modal handlers
   const openStatusChangeModal = (booking: Booking) => {
     setSelectedBooking(booking);
     setIsModalOpen(true);
   };
 
-  // Close status change modal
   const closeStatusChangeModal = () => {
     setSelectedBooking(null);
     setIsModalOpen(false);
@@ -130,48 +132,61 @@ export default function ListPage({ bookings, isError }: { bookings: Booking[], i
   // Define table columns
   const columns: Column[] = isError ? [] : [
     {
-      key: 'first_name',
-      header: 'Customer Name',
+      key: 'id',
+      header: 'ID',
       sortable: true,
-      width: '15%',
-      render: (value: unknown, row: Record<string, unknown>) => (
-        <span className="font-medium text-gray-700 dark:text-gray-300">
-          {String(value)} {row.last_name as string}
-        </span>
+      width: '8%',
+      render: (value: unknown) => (
+        <span className="font-medium text-blue-600 dark:text-blue-400">#{String(value)}</span>
       ),
     },
     {
-      key: 'email',
-      header: 'Email',
+      key: 'customer_name',
+      header: 'Customer',
       sortable: true,
       width: '15%',
-    },
-    {
-      key: 'phone',
-      header: 'Phone',
-      sortable: false,
-      width: '12%',
+      render: (value: unknown, row: Record<string, unknown>) => {
+        const booking = row as unknown as Booking;
+        return (
+          <div className="space-y-1">
+            <div className="font-medium text-gray-900 dark:text-white">
+              {booking.first_name} {booking.last_name}
+            </div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {booking.email}
+            </div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {booking.phone}
+            </div>
+          </div>
+        );
+      },
     },
     {
       key: 'booking_date',
-      header: 'Date',
+      header: 'Booking Date & Time',
       sortable: true,
-      width: '10%',
-      render: (value: unknown) => (
-        <span className="font-medium text-blue-600 dark:text-blue-400">
-          {new Date(String(value)).toLocaleDateString()}
-        </span>
-      ),
-    },
-    {
-      key: 'booking_time',
-      header: 'Time',
-      sortable: false,
-      width: '8%',
+      width: '15%',
+      render: (value: unknown, row: Record<string, unknown>) => {
+        const booking = row as unknown as Booking;
+        const bookingDate = new Date(booking.booking_date);
+        const bookingTime = booking.booking_time;
+        
+        return (
+          <div className="space-y-1">
+            <div className="font-medium text-gray-900 dark:text-white">
+              {bookingDate.toLocaleDateString()}
+            </div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {bookingTime}
+            </div>
+          </div>
+        );
+      },
     },
     {
       key: 'number_of_people',
-      header: 'People',
+      header: 'Guests',
       sortable: true,
       width: '8%',
       render: (value: unknown) => (
@@ -180,22 +195,30 @@ export default function ListPage({ bookings, isError }: { bookings: Booking[], i
     },
     {
       key: 'total_price',
-      header: 'Total Price (VND)',
+      header: 'Total Price',
       sortable: true,
-      width: '10%'
+      width: '12%',
+      render: (value: unknown, row: Record<string, unknown>) => {
+        const booking = row as unknown as Booking;
+        return (
+          <div className="text-right">
+            <div className="font-medium text-gray-900 dark:text-white">
+              {booking.total_price?.toLocaleString()} {booking.currency}
+            </div>
+          </div>
+        );
+      },
     },
     {
       key: 'status',
       header: 'Status',
       sortable: true,
-      width: '10%',
+      width: '15%',
       render: (value: unknown, row: Record<string, unknown>) => {
-        const status = Number(value) as BookingStatus;
-        const bookingDate = String(row.booking_date);
-        const bookingTime = String(row.booking_time);
-        
+        const booking = row as unknown as Booking;
+        const status = booking.status as BookingStatus;
+        const expired = isBookingExpired(booking.booking_date, booking.booking_time);
         const config = getBookingStatusConfig(status);
-        const expired = isBookingExpired(bookingDate, bookingTime);
         const showExpired = shouldShowExpired(status, expired);
         
         return (
@@ -246,20 +269,26 @@ export default function ListPage({ bookings, isError }: { bookings: Booking[], i
               Date Range
             </label>
             <div className="flex space-x-2">
-              <input
-                type="date"
-                value={dateRange.startDate}
-                onChange={(e) => handleDateRangeChange('startDate', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                placeholder="Start Date"
-              />
-              <input
-                type="date"
-                value={dateRange.endDate}
-                onChange={(e) => handleDateRangeChange('endDate', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                placeholder="End Date"
-              />
+              <div className="flex-1">
+                <DatePicker
+                  id="startDate"
+                  mode="single"
+                  placeholder="Start Date"
+                  defaultDate={dateRange.startDate || undefined}
+                  value={dateRange.startDate ? formatDateForDisplay(dateRange.startDate, true) : ''}
+                  onChange={(selectedDates) => handleDateRangeChange('startDate', selectedDates)}
+                />
+              </div>
+              <div className="flex-1">
+                <DatePicker
+                  id="endDate"
+                  mode="single"
+                  placeholder="End Date"
+                  defaultDate={dateRange.endDate || undefined}
+                  value={dateRange.endDate ? formatDateForDisplay(dateRange.endDate, true, false) : ''}
+                  onChange={(selectedDates) => handleDateRangeChange('endDate', selectedDates)}
+                />
+              </div>
             </div>
           </div>
 
@@ -268,16 +297,12 @@ export default function ListPage({ bookings, isError }: { bookings: Booking[], i
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Status
             </label>
-            <select
-              value={statusFilter}
-              onChange={(e) => handleStatusFilterChange(e.target.value === 'all' ? 'all' : parseInt(e.target.value) as BookingStatus)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            >
-              <option value="all">All Statuses</option>
-              <option value={BOOKING_STATUS.BOOKED}>{BOOKING_STATUS_LABELS[BOOKING_STATUS.BOOKED]}</option>
-              <option value={BOOKING_STATUS.DONE}>{BOOKING_STATUS_LABELS[BOOKING_STATUS.DONE]}</option>
-              <option value={BOOKING_STATUS.CANCELLED}>{BOOKING_STATUS_LABELS[BOOKING_STATUS.CANCELLED]}</option>
-            </select>
+            <Select
+              options={BOOKING_STATUS_OPTIONS}
+              placeholder="Select Status"
+              value={statusFilter === 'all' ? 'all' : statusFilter.toString()}
+              onChange={handleStatusFilterChange}
+            />
           </div>
 
           {/* Clear Filters Button */}
@@ -300,6 +325,13 @@ export default function ListPage({ bookings, isError }: { bookings: Booking[], i
             <span className="text-gray-600 dark:text-gray-400">
               Showing {filteredBookings.length} of {bookings.length} bookings
             </span>
+            {(dateRange.startDate || dateRange.endDate) && (
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                {dateRange.startDate && `From: ${dateRange.startDate.toLocaleDateString()}`}
+                {dateRange.startDate && dateRange.endDate && ' | '}
+                {dateRange.endDate && `To: ${dateRange.endDate.toLocaleDateString()}`}
+              </span>
+            )}
           </div>
         </div>
       </ComponentCard>
