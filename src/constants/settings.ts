@@ -24,3 +24,4 @@ export const SETTING_VALIDATIONS = {
   [SETTING_KEYS.KAKAO_TALK_INFO]: 'text',
   [SETTING_KEYS.NOTIFY_MAIL]: 'email',
 } as const;
+

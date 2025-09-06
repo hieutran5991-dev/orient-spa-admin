@@ -7,5 +7,5 @@ export const getSettings = async (): Promise<AxiosResponse<SettingListResponse>>
 };
 
 export const updateSettings = async (setting: UpdateSettingRequest): Promise<AxiosResponse<UpdateSettingResponse>> => {
-  return await request.post('settings', setting);
+  return await request.put('settings', setting);
 };

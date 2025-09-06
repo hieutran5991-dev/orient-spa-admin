@@ -18,6 +18,6 @@ export const getBooking = async (id: number): Promise<AxiosResponse<BookingRespo
 
 // Update booking status
 export const updateBookingStatus = async (id: number, status: BookingStatus): Promise<AxiosResponse<BookingResponse>> => {
-  return await request.post(`bookings/${id}/status`, { status });
+  return await request.put(`bookings/${id}/status`, { status });
 };
 
