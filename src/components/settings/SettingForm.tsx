@@ -52,7 +52,7 @@ export default function SettingForm({ settings, isError }: SettingFormProps) {
         return;
       }
 
-      if (validationType === 'phone' && !validatePhone(value)) {
+      if (validationType === 'tel' && !validatePhone(value)) {
         newErrors[key] = 'Please enter a valid phone number';
       }
 
@@ -143,90 +143,25 @@ export default function SettingForm({ settings, isError }: SettingFormProps) {
         
         <ComponentCard title="General Information">
           <form onSubmit={handleSubmit} className="space-y-6 p-6">
-            {/* Phone Number */}
-            <div>
-              <label htmlFor={SETTING_KEYS.PHONE_NUMBER} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {SETTING_LABELS[SETTING_KEYS.PHONE_NUMBER]} <span className="text-red-500">*</span>
-              </label>
-              <InputField
-                type="tel"
-                id={SETTING_KEYS.PHONE_NUMBER}
-                name={SETTING_KEYS.PHONE_NUMBER}
-                value={formData[SETTING_KEYS.PHONE_NUMBER] || ''}
-                onChange={(e) => handleInputChange(SETTING_KEYS.PHONE_NUMBER, e.target.value)}
-                placeholder="+8412345678"
-                error={!!errors[SETTING_KEYS.PHONE_NUMBER]}
-                hint={errors[SETTING_KEYS.PHONE_NUMBER]}
-              />
-            </div>
-
-            {/* Email */}
-            <div>
-              <label htmlFor={SETTING_KEYS.CONTACT_EMAIL} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {SETTING_LABELS[SETTING_KEYS.CONTACT_EMAIL]} <span className="text-red-500">*</span>
-              </label>
-              <InputField
-                type="email"
-                id={SETTING_KEYS.CONTACT_EMAIL}
-                name={SETTING_KEYS.CONTACT_EMAIL}
-                value={formData[SETTING_KEYS.CONTACT_EMAIL] || ''}
-                onChange={(e) => handleInputChange(SETTING_KEYS.CONTACT_EMAIL, e.target.value)}
-                placeholder="spa@example.com"
-                error={!!errors[SETTING_KEYS.CONTACT_EMAIL]}
-                hint={errors[SETTING_KEYS.CONTACT_EMAIL]}
-              />
-            </div>
-
-            {/* Line Info */}
-            <div>
-              <label htmlFor={SETTING_KEYS.LINE_INFO} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {SETTING_LABELS[SETTING_KEYS.LINE_INFO]} <span className="text-red-500">*</span>
-              </label>
-              <InputField
-                type="text"
-                id={SETTING_KEYS.LINE_INFO}
-                name={SETTING_KEYS.LINE_INFO}
-                value={formData[SETTING_KEYS.LINE_INFO] || ''}
-                onChange={(e) => handleInputChange(SETTING_KEYS.LINE_INFO, e.target.value)}
-                placeholder="Enter Line information"
-                error={!!errors[SETTING_KEYS.LINE_INFO]}
-                hint={errors[SETTING_KEYS.LINE_INFO]}
-              />
-            </div>
-
-            {/* Kakao Talk */}
-            <div>
-              <label htmlFor={SETTING_KEYS.KAKAO_TALK_INFO} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {SETTING_LABELS[SETTING_KEYS.KAKAO_TALK_INFO]} <span className="text-red-500">*</span>
-              </label>
-              <InputField
-                type="text"
-                id={SETTING_KEYS.KAKAO_TALK_INFO}
-                name={SETTING_KEYS.KAKAO_TALK_INFO}
-                value={formData[SETTING_KEYS.KAKAO_TALK_INFO] || ''}
-                onChange={(e) => handleInputChange(SETTING_KEYS.KAKAO_TALK_INFO, e.target.value)}
-                placeholder="Enter Kakao Talk information"
-                error={!!errors[SETTING_KEYS.KAKAO_TALK_INFO]}
-                hint={errors[SETTING_KEYS.KAKAO_TALK_INFO]}
-              />
-            </div>
-
-            {/* Mail Destination */}
-            <div>
-              <label htmlFor={SETTING_KEYS.NOTIFY_MAIL} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {SETTING_LABELS[SETTING_KEYS.NOTIFY_MAIL]} <span className="text-red-500">*</span>
-              </label>
-              <InputField
-                type="email"
-                id={SETTING_KEYS.NOTIFY_MAIL}
-                    name={SETTING_KEYS.NOTIFY_MAIL}
-                value={formData[SETTING_KEYS.NOTIFY_MAIL] || ''}
-                onChange={(e) => handleInputChange(SETTING_KEYS.NOTIFY_MAIL, e.target.value)}
-                placeholder="destination@example.com"
-                error={!!errors[SETTING_KEYS.NOTIFY_MAIL]}
-                hint={errors[SETTING_KEYS.NOTIFY_MAIL]}
-              />
-            </div>
+            {
+              Object.keys(SETTING_KEYS).map(key => (
+                <div key={key}>
+                  <label htmlFor={key} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {SETTING_LABELS[key as keyof typeof SETTING_LABELS]} <span className="text-red-500">*</span>
+                  </label>
+                  <InputField
+                    type={SETTING_VALIDATIONS[key as keyof typeof SETTING_VALIDATIONS]}
+                    id={key}
+                    name={key}
+                    value={formData[key] || ''}
+                    onChange={(e) => handleInputChange(key, e.target.value)}
+                    placeholder={SETTING_LABELS[key as keyof typeof SETTING_LABELS]}
+                    error={!!errors[key]}
+                    hint={errors[key]}
+                  />
+                </div>
+              ))
+            }
 
             {/* Submit Button */}
             <div className="flex justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
