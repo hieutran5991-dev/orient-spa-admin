@@ -27,12 +27,16 @@ jobs:
         run: |
           echo "NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}" >> .env.production
           echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> .env.production
+          echo "NEXT_STORAGE_HOST=${{ secrets.NEXT_STORAGE_HOST }}" >> .env.production
+          echo "NEXT_STORAGE_PORT=${{ secrets.NEXT_STORAGE_PORT }}" >> .env.production
 
       - name: Build application
         run: npm run build
         env:
           NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+          NEXT_STORAGE_HOST: ${{ secrets.NEXT_STORAGE_HOST }}
+          NEXT_STORAGE_PORT: ${{ secrets.NEXT_STORAGE_PORT }}
 
       - name: Create deployment package
         run: |
