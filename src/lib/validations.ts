@@ -146,6 +146,7 @@ export interface ProductFormData {
   is_promoted: boolean;
   promotion_description?: MultiLanguageValue;
   promotion_details?: MultiLanguageValue;
+  image?: File;
 }
 
 export interface ProductFormErrors {
@@ -157,7 +158,29 @@ export interface ProductFormErrors {
   currency?: string;
   promotion_description?: string;
   promotion_details?: string;
+  image?: string;
 }
+
+// Image validation
+export const validateImage = (file: File | undefined): string | null => {
+  if (!file) {
+    return 'Image is required';
+  }
+
+  // Check file type
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+  if (!allowedTypes.includes(file.type)) {
+    return 'Please select a valid image file (JPEG, PNG, GIF, WebP)';
+  }
+
+  // Check file size (5MB = 5 * 1024 * 1024 bytes)
+  const maxSize = 5 * 1024 * 1024;
+  if (file.size > maxSize) {
+    return 'Image size must be less than 5MB';
+  }
+
+  return null;
+};
 
 export const validateProductForm = (formData: ProductFormData): ProductFormErrors => {
   const errors: ProductFormErrors = {};
@@ -193,6 +216,12 @@ export const validateProductForm = (formData: ProductFormData): ProductFormError
 
   if (!validateRequired(formData.currency.en)) {
     errors.currency = 'Currency is required';
+  }
+
+  // Image validation
+  const imageError = validateImage(formData.image);
+  if (formData.image && imageError) {
+    errors.image = imageError;
   }
 
   // Promotion fields validation

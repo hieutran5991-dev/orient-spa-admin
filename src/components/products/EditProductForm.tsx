@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import PageBreadcrumb from '../common/PageBreadCrumb';
 import ComponentCard from '../common/ComponentCard';
-import { getProduct, updateProduct } from '@/api/product';
+import { getProduct, initialFormData, updateProduct } from '@/api/product';
 import { Product } from '@/types/product';
 import { CategoryOption } from '@/types/category';
 import { validateProductForm, ProductFormData, ProductFormErrors } from '@/lib/validations';
@@ -14,9 +15,12 @@ import { AlertMessages, AlertConfigs } from '@/lib/alertMessages';
 import { HTTP_CODES } from '@/constants/http-codes';
 import { MultiLanguageInput } from '../form/MultiLanguageInput';
 import { MultiLanguageTextarea } from '../form/MultiLanguageTextarea';
-import { ProductLanguages } from '@/types/product';
 import { MultiLanguageValue } from '@/types/language';
 import { useLanguage } from '@/context/LanguageContext';
+import InputField from '../form/input/InputField';
+import Select from '../form/Select';
+import FileInput from '../form/input/FileInput';
+import Checkbox from '../form/input/Checkbox';
 
 export default function EditProductForm({ categories }: { categories: CategoryOption[] }) {
   const router = useRouter();
@@ -50,6 +54,7 @@ export default function EditProductForm({ categories }: { categories: CategoryOp
     is_promoted: false,
     promotion_description: initialMultiLanguageValue,
     promotion_details: initialMultiLanguageValue,
+    image: undefined,
   });
 
   const [errors, setErrors] = useState<ProductFormErrors>({});
@@ -57,6 +62,8 @@ export default function EditProductForm({ categories }: { categories: CategoryOp
   const [isLoading, setIsLoading] = useState(true);
   const [product, setProduct] = useState<Product | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
 
   // Fetch product data on component mount
   useEffect(() => {
@@ -68,6 +75,13 @@ export default function EditProductForm({ categories }: { categories: CategoryOp
         if (response.status === HTTP_CODES.SUCCESS) {
           const productData = response.data.data;
           setProduct(productData);
+          
+          // Set current image URL if exists
+          if (productData.image_url) {
+            setCurrentImageUrl(productData.image_url);
+            setImagePreview(productData.image_url);
+          }
+          
           setFormData({
             name: productData.translations.reduce((acc, translation) => {
               acc[translation.language_code] = translation.name;
@@ -96,6 +110,7 @@ export default function EditProductForm({ categories }: { categories: CategoryOp
               acc[translation.language_code] = translation.promotion_details || '';
               return acc;
             }, {} as MultiLanguageValue),
+            image: undefined, // New image file (if user selects one)
           });
         } else {
           setLoadError('Product not found');
@@ -152,6 +167,25 @@ export default function EditProductForm({ categories }: { categories: CategoryOp
     }
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData(prev => ({ ...prev, image: file }));
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+      
+      // Clear error when user selects a file
+      if (errors.image) {
+        setErrors(prev => ({ ...prev, image: undefined }));
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -162,29 +196,8 @@ export default function EditProductForm({ categories }: { categories: CategoryOp
     setIsSubmitting(true);
     
     try {
-      const submitData = {
-        id: parseInt(productId),
-        category_id: parseInt(formData.category_id),
-        duration: parseInt(formData.duration),
-        is_promoted: formData.is_promoted,
-        translations: availableLanguages.reduce((acc, language) => {
-          if (formData.name[language.code] && formData.description[language.code] && formData.price[language.code] && formData.currency[language.code]
-            && (!formData.is_promoted || (formData.promotion_description?.[language.code] && formData.promotion_details?.[language.code]))
-          ) {
-            acc[language.code] = {
-              name: formData.name[language.code],
-              description: formData.description[language.code],
-              price: parseFloat(formData.price[language.code]),
-              currency: formData.currency[language.code],
-              ...(formData.is_promoted && formData.promotion_description?.[language.code] && formData.promotion_details?.[language.code] && {
-                promotion_description: formData.promotion_description[language.code],
-                promotion_details: formData.promotion_details[language.code],
-              }),
-            };
-          }
-          return acc;
-        }, {} as ProductLanguages),
-      };
+      const submitData = initialFormData(formData, availableLanguages);
+      submitData.append('id', productId);
 
       const response = await updateProduct(parseInt(productId), submitData);
 
@@ -287,35 +300,32 @@ export default function EditProductForm({ categories }: { categories: CategoryOp
               <label htmlFor="category_id" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Category <span className="text-red-500">*</span>
               </label>
-              <select
-                id="category_id"
-                name="category_id"
+              <Select
+                options={categories.map(category => ({
+                  value: category.id.toString(),
+                  label: category.name
+                }))}
+                placeholder="Select a category"
                 value={formData.category_id}
-                onChange={handleInputChange}
-                disabled={categories.length === 0}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${
-                  errors.category_id ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
-                } ${categories.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                required
-              >
-                <option value="">Select a category</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id.toString()}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => {
+                  setFormData(prev => ({ ...prev, category_id: value }));
+                  if (errors.category_id) {
+                    setErrors(prev => ({ ...prev, category_id: undefined }));
+                  }
+                }}
+                className={errors.category_id ? 'border-red-500 dark:border-red-400' : ''}
+              />
               {errors.category_id && (
-                <p className="mt-1 text-sm text-red-500">{errors.category_id}</p>
+                <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.category_id}</p>
               )}
             </div>
 
             {/* Duration Field */}
             <div>
               <label htmlFor="duration" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Duration (minutes) <span className="text-red-500">*</span>
+                Duration (minutes) <span className="text-red-500 dark:text-red-400">*</span>
               </label>
-              <input
+              <InputField
                 type="number"
                 id="duration"
                 name="duration"
@@ -323,16 +333,10 @@ export default function EditProductForm({ categories }: { categories: CategoryOp
                 onChange={handleInputChange}
                 min="30"
                 max="300"
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${
-                  errors.duration ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
-                }`}
                 placeholder="Enter duration in minutes (30-300)"
-                required
+                error={!!errors.duration}
+                hint={errors.duration || "Minimum: 30 minutes, Maximum: 300 minutes (5 hours)"}
               />
-              <p className="mt-1 text-sm text-gray-500">Minimum: 30 minutes, Maximum: 300 minutes (5 hours)</p>
-              {errors.duration && (
-                <p className="mt-1 text-sm text-red-500">{errors.duration}</p>
-              )}
             </div>
 
             {/* Price Field */}
@@ -357,15 +361,52 @@ export default function EditProductForm({ categories }: { categories: CategoryOp
                 error={errors.currency}
               />
 
+            {/* Image Upload Field */}
+            <div>
+              <label htmlFor="image" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Product Image
+              </label>
+              <FileInput
+                onChange={handleImageChange}
+                className={errors.image ? 'border-red-500 dark:border-red-400' : ''}
+              />
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                {currentImageUrl 
+                  ? "Select a new image to replace the current one. Supported formats: JPEG, PNG, GIF, WebP. Maximum size: 5MB"
+                  : "Supported formats: JPEG, PNG, GIF, WebP. Maximum size: 5MB"
+                }
+              </p>
+              {errors.image && (
+                <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.image}</p>
+              )}
+              
+              {/* Current Image or New Image Preview */}
+              {imagePreview && (
+                <div className="mt-4">
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {formData.image ? 'New Image Preview:' : 'Current Image:'}
+                  </p>
+                  <div className="relative w-32 h-32 border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden">
+                    <Image
+                      src={imagePreview}
+                      alt={formData.image ? 'New product preview' : 'Current product image'}
+                      width={128}
+                      height={128}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Is Promoted Field */}
             <div className="flex items-center">
-              <input
-                type="checkbox"
+              <Checkbox
                 id="is_promoted"
-                name="is_promoted"
                 checked={formData.is_promoted}
-                onChange={handleInputChange}
-                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                onChange={(checked) => {
+                  setFormData(prev => ({ ...prev, is_promoted: checked }));
+                }}
               />
               <label htmlFor="is_promoted" className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                 Promote this product
@@ -373,7 +414,7 @@ export default function EditProductForm({ categories }: { categories: CategoryOp
             </div>
 
             {/* Promotion Description Field */}
-            {(formData.is_promoted || formData.promotion_description) && (
+            {(formData.is_promoted || Object.values(formData.promotion_description || {}).some(value => value !== '')) && (
               <MultiLanguageTextarea
                 label="Promotion Description"
                 value={formData.promotion_description || initialMultiLanguageValue}
@@ -386,7 +427,7 @@ export default function EditProductForm({ categories }: { categories: CategoryOp
             )}
 
             {/* Promotion Details Field */}
-            {(formData.is_promoted || formData.promotion_details) && (
+            {(formData.is_promoted || Object.values(formData.promotion_details || {}).some(value => value !== '')) && (
               <MultiLanguageTextarea
                 label="Promotion Details"
                 value={formData.promotion_details || initialMultiLanguageValue}

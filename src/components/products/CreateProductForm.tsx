@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import PageBreadcrumb from '../common/PageBreadCrumb';
 import ComponentCard from '../common/ComponentCard';
-import { createProduct } from '@/api/product';
+import { createProduct, initialFormData } from '@/api/product';
 import { validateProductForm, ProductFormData, ProductFormErrors } from '@/lib/validations';
 import { useAlert } from '@/context/AlertContext';
 import { AlertMessages, AlertConfigs } from '@/lib/alertMessages';
@@ -13,9 +14,12 @@ import { HTTP_CODES } from '@/constants/http-codes';
 import { CategoryOption } from '@/types/category';
 import { MultiLanguageInput } from '../form/MultiLanguageInput';
 import { MultiLanguageTextarea } from '../form/MultiLanguageTextarea';
-import { ProductLanguages } from '@/types/product';
 import { MultiLanguageValue } from '@/types/language';
 import { useLanguage } from '@/context/LanguageContext';
+import InputField from '../form/input/InputField';
+import Select from '../form/Select';
+import FileInput from '../form/input/FileInput';
+import Checkbox from '../form/input/Checkbox';
 
 export default function CreateProductForm({ categories }: { categories: CategoryOption[] }) {
   const router = useRouter();
@@ -47,10 +51,12 @@ export default function CreateProductForm({ categories }: { categories: Category
     is_promoted: false,
     promotion_description: initialMultiLanguageValue,
     promotion_details: initialMultiLanguageValue,
+    image: undefined,
   });
 
   const [errors, setErrors] = useState<ProductFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const validateForm = (): boolean => {
     const newErrors = validateProductForm(formData);
@@ -74,6 +80,25 @@ export default function CreateProductForm({ categories }: { categories: Category
     }
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData(prev => ({ ...prev, image: file }));
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+      
+      // Clear error when user selects a file
+      if (errors.image) {
+        setErrors(prev => ({ ...prev, image: undefined }));
+      }
+    }
+  };
+
   const handleMultiLanguageChange = (field: 'name' | 'description' | 'price' | 'currency' | 'promotion_description' | 'promotion_details', value: MultiLanguageValue) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field as keyof ProductFormErrors]) {
@@ -91,28 +116,7 @@ export default function CreateProductForm({ categories }: { categories: Category
     setIsSubmitting(true);
     
     try {
-      const submitData = {
-        category_id: parseInt(formData.category_id),
-        duration: parseInt(formData.duration),
-        is_promoted: formData.is_promoted,
-        translations: availableLanguages.reduce((acc, language) => {
-          if (formData.name[language.code] && formData.description[language.code] && formData.price[language.code] && formData.currency[language.code]
-            && (!formData.is_promoted || (formData.promotion_description?.[language.code] && formData.promotion_details?.[language.code]))
-          ) {
-            acc[language.code] = {
-              name: formData.name[language.code],
-              description: formData.description[language.code],
-              price: parseFloat(formData.price[language.code]),
-              currency: formData.currency[language.code],
-              ...(formData.is_promoted && formData.promotion_description?.[language.code] && formData.promotion_details?.[language.code] && {
-                promotion_description: formData.promotion_description[language.code],
-                promotion_details: formData.promotion_details[language.code],
-              }),
-            };
-          }
-          return acc;
-        }, {} as ProductLanguages),
-      };
+      const submitData = initialFormData(formData, availableLanguages);
 
       const response = await createProduct(submitData);
 
@@ -175,24 +179,21 @@ export default function CreateProductForm({ categories }: { categories: Category
               <label htmlFor="category_id" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Category <span className="text-red-500">*</span>
               </label>
-              <select
-                id="category_id"
-                name="category_id"
+              <Select
+                options={categories.map(category => ({
+                  value: category.id.toString(),
+                  label: category.name
+                }))}
+                placeholder="Select a category"
                 value={formData.category_id}
-                onChange={handleInputChange}
-                disabled={categories.length === 0}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${
-                  errors.category_id ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
-                } ${categories.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                required
-              >
-                <option value="">Select a category</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => {
+                  setFormData(prev => ({ ...prev, category_id: value }));
+                  if (errors.category_id) {
+                    setErrors(prev => ({ ...prev, category_id: undefined }));
+                  }
+                }}
+                className={errors.category_id ? 'border-red-500' : ''}
+              />
               {errors.category_id && (
                 <p className="mt-1 text-sm text-red-500">{errors.category_id}</p>
               )}
@@ -203,7 +204,7 @@ export default function CreateProductForm({ categories }: { categories: Category
               <label htmlFor="duration" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Duration (minutes) <span className="text-red-500">*</span>
               </label>
-              <input
+              <InputField
                 type="number"
                 id="duration"
                 name="duration"
@@ -211,16 +212,10 @@ export default function CreateProductForm({ categories }: { categories: Category
                 onChange={handleInputChange}
                 min="30"
                 max="300"
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${
-                  errors.duration ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
-                }`}
                 placeholder="Enter duration in minutes (30-300)"
-                required
+                error={!!errors.duration}
+                hint={errors.duration || "Minimum: 30 minutes, Maximum: 300 minutes (5 hours)"}
               />
-              <p className="mt-1 text-sm text-gray-500">Minimum: 30 minutes, Maximum: 300 minutes (5 hours)</p>
-              {errors.duration && (
-                <p className="mt-1 text-sm text-red-500">{errors.duration}</p>
-              )}
             </div>
 
             {/* Price Field */}
@@ -244,15 +239,47 @@ export default function CreateProductForm({ categories }: { categories: Category
                 error={errors.currency}
               />
 
+            {/* Image Upload Field */}
+            <div>
+              <label htmlFor="image" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Product Image
+              </label>
+              <FileInput
+                onChange={handleImageChange}
+                className={errors.image ? 'border-red-500 dark:border-red-400' : ''}
+              />
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Supported formats: JPEG, PNG, GIF, WebP. Maximum size: 5MB
+              </p>
+              {errors.image && (
+                <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.image}</p>
+              )}
+              
+              {/* Image Preview */}
+              {imagePreview && (
+                <div className="mt-4">
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Preview:</p>
+                  <div className="relative w-32 h-32 border border-gray-300 rounded-lg overflow-hidden">
+                    <Image
+                      src={imagePreview}
+                      alt="Product preview"
+                      width={128}
+                      height={128}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Is Promoted Field */}
             <div className="flex items-center">
-              <input
-                type="checkbox"
+              <Checkbox
                 id="is_promoted"
-                name="is_promoted"
                 checked={formData.is_promoted}
-                onChange={handleInputChange}
-                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                onChange={(checked) => {
+                  setFormData(prev => ({ ...prev, is_promoted: checked }));
+                }}
               />
               <label htmlFor="is_promoted" className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                 Promote this product

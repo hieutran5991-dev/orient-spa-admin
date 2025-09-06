@@ -22,6 +22,7 @@ export interface Product {
   is_promoted: boolean;
   promotion_description?: string;
   promotion_details?: string;
+  image_url?: string;
   created_at?: string;
   updated_at?: string;
   translations: ProductLanguage[];
@@ -44,6 +45,7 @@ export interface CreateProductRequest {
   category_id: number;
   duration: number;
   is_promoted: boolean;
+  image?: File;
   translations: ProductLanguages;
 }
 
@@ -57,6 +59,7 @@ export interface UpdateProductRequest {
   category_id: number;
   duration: number;
   is_promoted: boolean;
+  image?: File;
   translations: ProductLanguages;
 }
 
