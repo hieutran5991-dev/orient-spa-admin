@@ -10,10 +10,10 @@ export interface Booking {
   booking_details: {
     [key: number]: BookingDetail[];
   };
-  first_name: string;
-  last_name: string;
+  full_name: string;
   email: string;
   phone: string;
+  social_account_id?: string;
   note?: string;
   total_price: number;
   currency: string;
@@ -44,10 +44,10 @@ export interface CreateBookingRequest {
   booking_time: string;
   number_of_people: number;
   booking_details: string;
-  first_name: string;
-  last_name: string;
+  full_name: string;
   email: string;
   phone: string;
+  social_account_id?: string;
   note?: string;
   total_price: number;
   currency: string;

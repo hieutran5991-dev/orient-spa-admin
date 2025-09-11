@@ -10,6 +10,7 @@ import {
   getBookingStatusConfig,
   BOOKING_STATUS
 } from '@/constants/booking-status';
+import Select from '../form/Select';
 
 interface StatusChangeModalProps {
   isOpen: boolean;
@@ -41,10 +42,16 @@ const StatusChangeModal: React.FC<StatusChangeModalProps> = ({
   const availableTransitions = getAvailableStatusTransitions(booking.status, isExpired);
   const currentStatusConfig = getBookingStatusConfig(booking.status);
 
+
+  const statusOptions = availableTransitions.map((status) => ({
+    value: status.toString(),
+    label: BOOKING_STATUS_LABELS[status]
+  }));
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedStatus) return;
+    if (selectedStatus === null) return;
 
     setIsSubmitting(true);
     try {
@@ -98,7 +105,7 @@ const StatusChangeModal: React.FC<StatusChangeModalProps> = ({
                         Customer Name:
                       </label>
                       <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                        {booking.first_name} {booking.last_name}
+                        {booking.full_name}
                       </p>
                     </div>
                     <div>
@@ -114,7 +121,7 @@ const StatusChangeModal: React.FC<StatusChangeModalProps> = ({
                         Phone:
                       </label>
                       <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                        {booking.phone}
+                        {booking.phone} {booking.social_account_id ? `(${booking.social_account_id})` : ''}
                       </p>
                     </div>
                     <div>
@@ -189,19 +196,12 @@ const StatusChangeModal: React.FC<StatusChangeModalProps> = ({
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       New Status:
                     </label>
-                    <select
-                      value={selectedStatus || ''}
-                      onChange={(e) => setSelectedStatus(Number(e.target.value) as BookingStatus)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      required
-                    >
-                      <option value="">Select New Status</option>
-                      {availableTransitions.map((status) => (
-                        <option key={status} value={status}>
-                          {BOOKING_STATUS_LABELS[status]}
-                        </option>
-                      ))}
-                    </select>
+                    <Select
+                      placeholder="Select New Status"
+                      options={statusOptions}
+                      value={selectedStatus?.toString() || ''}
+                      onChange={(value) => setSelectedStatus(Number(value) as BookingStatus)}
+                    />
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                       {isExpired ? 'Expired' : 'Not expired'}
                     </p>
@@ -218,7 +218,7 @@ const StatusChangeModal: React.FC<StatusChangeModalProps> = ({
                     </button>
                     <button
                       type="submit"
-                      disabled={!selectedStatus || isSubmitting}
+                      disabled={selectedStatus === null || isSubmitting}
                       className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isSubmitting ? 'Updating...' : 'Update Status'}

@@ -99,8 +99,10 @@ export default function ListPage({ bookings, isError }: { bookings: Booking[], i
           AlertMessages.SUCCESS.BOOKING_UPDATED.message,
           AlertConfigs.SUCCESS
         );
-        // Refresh the page to show updated data
-        window.location.reload();
+
+        setInterval(() => {
+          window.location.reload();
+        }, 1000);
       } else {
         showError(
           AlertMessages.ERROR.SAVE_ERROR.title,
@@ -150,13 +152,13 @@ export default function ListPage({ bookings, isError }: { bookings: Booking[], i
         return (
           <div className="space-y-1">
             <div className="font-medium text-gray-900 dark:text-white">
-              {booking.first_name} {booking.last_name}
+              {booking.full_name}
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">
               {booking.email}
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              {booking.phone}
+              {booking.phone} {booking.social_account_id ? `(${booking.social_account_id})` : ''}
             </div>
           </div>
         );
