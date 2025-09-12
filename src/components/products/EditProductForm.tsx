@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import PageBreadcrumb from '../common/PageBreadCrumb';
 import ComponentCard from '../common/ComponentCard';
 import { getProduct, initialFormData, updateProduct } from '@/api/product';
@@ -21,6 +20,7 @@ import InputField from '../form/input/InputField';
 import Select from '../form/Select';
 import FileInput from '../form/input/FileInput';
 import Checkbox from '../form/input/Checkbox';
+import ImagePreview from '../form/ImagePreview';
 
 export default function EditProductForm({ categories }: { categories: CategoryOption[] }) {
   const router = useRouter();
@@ -51,9 +51,9 @@ export default function EditProductForm({ categories }: { categories: CategoryOp
     duration: '',
     price: initialPriceValue,
     currency: initialCurrencyValue,
-    is_promoted: false,
-    promotion_description: initialMultiLanguageValue,
-    promotion_details: initialMultiLanguageValue,
+    is_featured: false,
+    featured_product_description: initialMultiLanguageValue,
+    featured_product_detail: initialMultiLanguageValue,
     image: undefined,
   });
 
@@ -62,8 +62,7 @@ export default function EditProductForm({ categories }: { categories: CategoryOp
   const [isLoading, setIsLoading] = useState(true);
   const [product, setProduct] = useState<Product | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // Fetch product data on component mount
   useEffect(() => {
@@ -75,12 +74,6 @@ export default function EditProductForm({ categories }: { categories: CategoryOp
         if (response.status === HTTP_CODES.SUCCESS) {
           const productData = response.data.data;
           setProduct(productData);
-          
-          // Set current image URL if exists
-          if (productData.image_url) {
-            setCurrentImageUrl(productData.image_url);
-            setImagePreview(productData.image_url);
-          }
           
           setFormData({
             name: productData.translations.reduce((acc, translation) => {
@@ -101,13 +94,13 @@ export default function EditProductForm({ categories }: { categories: CategoryOp
               acc[translation.language_code] = translation.currency || 'VND';
               return acc;
             }, {} as MultiLanguageValue),
-            is_promoted: productData.is_promoted || false,
-            promotion_description: productData.translations.reduce((acc, translation) => {
-              acc[translation.language_code] = translation.promotion_description || '';
+            is_featured: productData.is_featured || false,
+            featured_product_description: productData.translations.reduce((acc, translation) => {
+              acc[translation.language_code] = translation.featured_product_description || '';
               return acc;
             }, {} as MultiLanguageValue),
-            promotion_details: productData.translations.reduce((acc, translation) => {
-              acc[translation.language_code] = translation.promotion_details || '';
+            featured_product_detail: productData.translations.reduce((acc, translation) => {
+              acc[translation.language_code] = translation.featured_product_detail || '';
               return acc;
             }, {} as MultiLanguageValue),
             image: undefined, // New image file (if user selects one)
@@ -160,7 +153,7 @@ export default function EditProductForm({ categories }: { categories: CategoryOp
     }
   };
 
-  const handleMultiLanguageChange = (field: 'name' | 'description' | 'price' | 'currency' | 'promotion_description' | 'promotion_details', value: MultiLanguageValue) => {
+  const handleMultiLanguageChange = (field: 'name' | 'description' | 'price' | 'currency' | 'featured_product_description' | 'featured_product_detail', value: MultiLanguageValue) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field as keyof ProductFormErrors]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
@@ -171,18 +164,27 @@ export default function EditProductForm({ categories }: { categories: CategoryOp
     const file = e.target.files?.[0];
     if (file) {
       setFormData(prev => ({ ...prev, image: file }));
+      setSelectedFile(file);
       
       // Create preview
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
-      };
       reader.readAsDataURL(file);
       
       // Clear error when user selects a file
       if (errors.image) {
         setErrors(prev => ({ ...prev, image: undefined }));
       }
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData(prev => ({ ...prev, image: undefined }));
+    setSelectedFile(null);
+    
+    // Clear the file input
+    const fileInput = document.getElementById('image') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
     }
   };
 
@@ -367,11 +369,12 @@ export default function EditProductForm({ categories }: { categories: CategoryOp
                 Product Image
               </label>
               <FileInput
+                id="image"
                 onChange={handleImageChange}
                 className={errors.image ? 'border-red-500 dark:border-red-400' : ''}
               />
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {currentImageUrl 
+                {selectedFile 
                   ? "Select a new image to replace the current one. Supported formats: JPEG, PNG, GIF, WebP. Maximum size: 5MB"
                   : "Supported formats: JPEG, PNG, GIF, WebP. Maximum size: 5MB"
                 }
@@ -380,61 +383,56 @@ export default function EditProductForm({ categories }: { categories: CategoryOp
                 <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.image}</p>
               )}
               
-              {/* Current Image or New Image Preview */}
-              {imagePreview && (
+              {/* Enhanced Image Preview */}
+              {(selectedFile || product?.image_url) && (
                 <div className="mt-4">
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    {formData.image ? 'New Image Preview:' : 'Current Image:'}
-                  </p>
-                  <div className="relative w-32 h-32 border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden">
-                    <Image
-                      src={imagePreview}
-                      alt={formData.image ? 'New product preview' : 'Current product image'}
-                      width={128}
-                      height={128}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+                  <ImagePreview
+                    imageUrl={selectedFile ? URL.createObjectURL(selectedFile) : product?.image_url || ''}
+                    fileName={selectedFile?.name}
+                    fileSize={selectedFile?.size}
+                    isNewImage={!!formData.image}
+                    onRemove={formData.image ? handleRemoveImage : undefined}
+                  />
                 </div>
               )}
             </div>
 
-            {/* Is Promoted Field */}
+            {/* Is Featured Field */}
             <div className="flex items-center">
               <Checkbox
-                id="is_promoted"
-                checked={formData.is_promoted}
+                id="is_featured"
+                checked={formData.is_featured}
                 onChange={(checked) => {
-                  setFormData(prev => ({ ...prev, is_promoted: checked }));
+                  setFormData(prev => ({ ...prev, is_featured: checked }));
                 }}
               />
-              <label htmlFor="is_promoted" className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                Promote this product
+              <label htmlFor="is_featured" className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                Feature this product
               </label>
             </div>
 
-            {/* Promotion Description Field */}
-            {(formData.is_promoted || Object.values(formData.promotion_description || {}).some(value => value !== '')) && (
+            {/* Featured Product Description Field */}
+            {(formData.is_featured || Object.values(formData.featured_product_description || {}).some(value => value !== '')) && (
               <MultiLanguageTextarea
-                label="Promotion Description"
-                value={formData.promotion_description || initialMultiLanguageValue}
-                onChange={(value) => handleMultiLanguageChange('promotion_description', value)}
-                placeholder="Enter promotion description"
-                required={formData.is_promoted}
-                error={errors.promotion_description}
+                label="Featured Product Description"
+                value={formData.featured_product_description || initialMultiLanguageValue}
+                onChange={(value) => handleMultiLanguageChange('featured_product_description', value)}
+                placeholder="Enter featured product description"
+                required={formData.is_featured}
+                error={errors.featured_product_description}
                 rows={3}
               />
             )}
 
-            {/* Promotion Details Field */}
-            {(formData.is_promoted || Object.values(formData.promotion_details || {}).some(value => value !== '')) && (
+            {/* Featured Product Detail Field */}
+            {(formData.is_featured || Object.values(formData.featured_product_detail || {}).some(value => value !== '')) && (
               <MultiLanguageTextarea
-                label="Promotion Details"
-                value={formData.promotion_details || initialMultiLanguageValue}
-                onChange={(value) => handleMultiLanguageChange('promotion_details', value)}
-                placeholder="Enter promotion details"
-                required={formData.is_promoted}
-                error={errors.promotion_details}
+                label="Featured Product Detail"
+                value={formData.featured_product_detail || initialMultiLanguageValue}
+                onChange={(value) => handleMultiLanguageChange('featured_product_detail', value)}
+                placeholder="Enter featured product detail"
+                required={formData.is_featured}
+                error={errors.featured_product_detail}
                 rows={3}
               />
             )}

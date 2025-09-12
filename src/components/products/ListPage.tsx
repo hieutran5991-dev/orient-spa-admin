@@ -97,8 +97,8 @@ export default function ListPage({ products, categories, isError }: { products: 
       },
     },
     {
-      key: 'is_promoted',
-      header: 'Promoted',
+      key: 'is_featured',
+      header: 'Featured',
       sortable: true,
       width: '8%',
       render: (value: unknown) => (

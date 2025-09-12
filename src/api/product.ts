@@ -10,7 +10,7 @@ export const initialFormData = (form: ProductFormData, availableLanguages: Langu
   // Add basic fields
   formData.append('category_id', parseInt(form.category_id).toString());
   formData.append('duration', parseInt(form.duration).toString());
-  formData.append('is_promoted', form.is_promoted.toString());
+  formData.append('is_featured', form.is_featured.toString());
   
   // Add image file
   if (form.image) {
@@ -19,16 +19,16 @@ export const initialFormData = (form: ProductFormData, availableLanguages: Langu
 
   const translations = availableLanguages.reduce((acc, language) => {
     if (form.name[language.code] && form.description[language.code] && form.price[language.code] && form.currency[language.code]
-      && (!form.is_promoted || (form.promotion_description?.[language.code] && form.promotion_details?.[language.code]))
+      && (!form.is_featured || (form.featured_product_description?.[language.code] && form.featured_product_detail?.[language.code]))
     ) {
       acc[language.code] = {
         name: form.name[language.code],
         description: form.description[language.code],
         price: parseFloat(form.price[language.code]),
         currency: form.currency[language.code],
-        ...(form.is_promoted && form.promotion_description?.[language.code] && form.promotion_details?.[language.code] && {
-          promotion_description: form.promotion_description[language.code],
-          promotion_details: form.promotion_details[language.code],
+        ...(form.is_featured && form.featured_product_description?.[language.code] && form.featured_product_detail?.[language.code] && {
+          featured_product_description: form.featured_product_description[language.code],
+          featured_product_detail: form.featured_product_detail[language.code],
         }),
       };
     }

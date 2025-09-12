@@ -143,9 +143,9 @@ export interface ProductFormData {
   duration: string;
   price: MultiLanguageValue;
   currency: MultiLanguageValue;
-  is_promoted: boolean;
-  promotion_description?: MultiLanguageValue;
-  promotion_details?: MultiLanguageValue;
+  is_featured: boolean;
+  featured_product_description?: MultiLanguageValue;
+  featured_product_detail?: MultiLanguageValue;
   image?: File;
 }
 
@@ -156,8 +156,8 @@ export interface ProductFormErrors {
   duration?: string;
   price?: string;
   currency?: string;
-  promotion_description?: string;
-  promotion_details?: string;
+  featured_product_description?: string;
+  featured_product_detail?: string;
   image?: string;
 }
 
@@ -224,13 +224,13 @@ export const validateProductForm = (formData: ProductFormData): ProductFormError
     errors.image = imageError;
   }
 
-  // Promotion fields validation
-  if (formData.is_promoted) {
-    if (!validateRequired(formData.promotion_description?.en || '')) {
-      errors.promotion_description = 'Promotion description is required when product is promoted';
+  // Featured product fields validation
+  if (formData.is_featured) {
+    if (!validateRequired(formData.featured_product_description?.en || '')) {
+      errors.featured_product_description = 'Featured product description is required when product is featured';
     }
-    if (!validateRequired(formData.promotion_details?.en || '')) {
-      errors.promotion_details = 'Promotion details is required when product is promoted';
+    if (!validateRequired(formData.featured_product_detail?.en || '')) {
+      errors.featured_product_detail = 'Featured product detail is required when product is featured';
     }
   }
 

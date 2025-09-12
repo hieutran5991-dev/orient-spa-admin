@@ -6,8 +6,8 @@ export interface ProductLanguages {
     description: string;
     price: number;
     currency: string;
-    promotion_description?: string;
-    promotion_details?: string;
+    featured_product_description?: string;
+    featured_product_detail?: string;
   };
 }
 
@@ -19,9 +19,9 @@ export interface Product {
   duration: number; // in minutes
   price: number;
   currency: string;
-  is_promoted: boolean;
-  promotion_description?: string;
-  promotion_details?: string;
+  is_featured: boolean;
+  featured_product_description?: string;
+  featured_product_detail?: string;
   image_url?: string;
   created_at?: string;
   updated_at?: string;
@@ -37,14 +37,14 @@ export interface ProductLanguage {
   description: string;
   price: number;
   currency: string;
-  promotion_description?: string;
-  promotion_details?: string;
+  featured_product_description?: string;
+  featured_product_detail?: string;
 }
 
 export interface CreateProductRequest {
   category_id: number;
   duration: number;
-  is_promoted: boolean;
+  is_featured: boolean;
   image?: File;
   translations: ProductLanguages;
 }
@@ -58,7 +58,7 @@ export interface UpdateProductRequest {
   id: number;
   category_id: number;
   duration: number;
-  is_promoted: boolean;
+  is_featured: boolean;
   image?: File;
   translations: ProductLanguages;
 }

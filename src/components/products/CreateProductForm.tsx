@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import PageBreadcrumb from '../common/PageBreadCrumb';
 import ComponentCard from '../common/ComponentCard';
 import { createProduct, initialFormData } from '@/api/product';
@@ -20,6 +19,7 @@ import InputField from '../form/input/InputField';
 import Select from '../form/Select';
 import FileInput from '../form/input/FileInput';
 import Checkbox from '../form/input/Checkbox';
+import ImagePreview from '../form/ImagePreview';
 
 export default function CreateProductForm({ categories }: { categories: CategoryOption[] }) {
   const router = useRouter();
@@ -48,15 +48,15 @@ export default function CreateProductForm({ categories }: { categories: Category
     duration: '',
     price: initialPriceValue,
     currency: initialCurrencyValue,
-    is_promoted: false,
-    promotion_description: initialMultiLanguageValue,
-    promotion_details: initialMultiLanguageValue,
+    is_featured: false,
+    featured_product_description: initialMultiLanguageValue,
+    featured_product_detail: initialMultiLanguageValue,
     image: undefined,
   });
 
   const [errors, setErrors] = useState<ProductFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const validateForm = (): boolean => {
     const newErrors = validateProductForm(formData);
@@ -84,12 +84,10 @@ export default function CreateProductForm({ categories }: { categories: Category
     const file = e.target.files?.[0];
     if (file) {
       setFormData(prev => ({ ...prev, image: file }));
+      setSelectedFile(file);
       
       // Create preview
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
-      };
       reader.readAsDataURL(file);
       
       // Clear error when user selects a file
@@ -99,7 +97,18 @@ export default function CreateProductForm({ categories }: { categories: Category
     }
   };
 
-  const handleMultiLanguageChange = (field: 'name' | 'description' | 'price' | 'currency' | 'promotion_description' | 'promotion_details', value: MultiLanguageValue) => {
+  const handleRemoveImage = () => {
+    setFormData(prev => ({ ...prev, image: undefined }));
+    setSelectedFile(null);
+    
+    // Clear the file input
+    const fileInput = document.getElementById('image') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  };
+
+  const handleMultiLanguageChange = (field: 'name' | 'description' | 'price' | 'currency' | 'featured_product_description' | 'featured_product_detail', value: MultiLanguageValue) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field as keyof ProductFormErrors]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
@@ -245,6 +254,7 @@ export default function CreateProductForm({ categories }: { categories: Category
                 Product Image
               </label>
               <FileInput
+                id="image"
                 onChange={handleImageChange}
                 className={errors.image ? 'border-red-500 dark:border-red-400' : ''}
               />
@@ -255,59 +265,56 @@ export default function CreateProductForm({ categories }: { categories: Category
                 <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.image}</p>
               )}
               
-              {/* Image Preview */}
-              {imagePreview && (
+              {/* Enhanced Image Preview */}
+              {selectedFile && (
                 <div className="mt-4">
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Preview:</p>
-                  <div className="relative w-32 h-32 border border-gray-300 rounded-lg overflow-hidden">
-                    <Image
-                      src={imagePreview}
-                      alt="Product preview"
-                      width={128}
-                      height={128}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+                  <ImagePreview
+                    imageUrl={selectedFile ? URL.createObjectURL(selectedFile) : ''}
+                    fileName={selectedFile?.name}
+                    fileSize={selectedFile?.size}
+                    isNewImage={true}
+                    onRemove={handleRemoveImage}
+                  />
                 </div>
               )}
             </div>
 
-            {/* Is Promoted Field */}
+            {/* Is Featured Field */}
             <div className="flex items-center">
               <Checkbox
-                id="is_promoted"
-                checked={formData.is_promoted}
+                id="is_featured"
+                checked={formData.is_featured}
                 onChange={(checked) => {
-                  setFormData(prev => ({ ...prev, is_promoted: checked }));
+                  setFormData(prev => ({ ...prev, is_featured: checked }));
                 }}
               />
-              <label htmlFor="is_promoted" className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                Promote this product
+              <label htmlFor="is_featured" className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                Feature this product
               </label>
             </div>
 
-            {/* Promotion Description Field */}
-            {formData.is_promoted && (
+            {/* Featured Product Description Field */}
+            {formData.is_featured && (
               <MultiLanguageTextarea
-                label="Promotion Description"
-                value={formData.promotion_description || initialMultiLanguageValue}
-                onChange={(value) => handleMultiLanguageChange('promotion_description', value)}
-                placeholder="Enter promotion description"
+                label="Featured Product Description"
+                value={formData.featured_product_description || initialMultiLanguageValue}
+                onChange={(value) => handleMultiLanguageChange('featured_product_description', value)}
+                placeholder="Enter featured product description"
                 required={true}
-                error={errors.promotion_description}
+                error={errors.featured_product_description}
                 rows={3}
               />
             )}
 
-            {/* Promotion Details Field */}
-            {formData.is_promoted && (
+            {/* Featured Product Detail Field */}
+            {formData.is_featured && (
               <MultiLanguageTextarea
-                label="Promotion Details"
-                value={formData.promotion_details || initialMultiLanguageValue}
-                onChange={(value) => handleMultiLanguageChange('promotion_details', value)}
-                placeholder="Enter promotion details"
+                label="Featured Product Detail"
+                value={formData.featured_product_detail || initialMultiLanguageValue}
+                onChange={(value) => handleMultiLanguageChange('featured_product_detail', value)}
+                placeholder="Enter featured product detail"
                 required={true}
-                error={errors.promotion_details}
+                error={errors.featured_product_detail}
                 rows={3}
               />
             )}
