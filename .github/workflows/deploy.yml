@@ -18,10 +18,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'yarn'
 
       - name: Install dependencies
-        run: npm ci
+        run: yarn install --frozen-lockfile
 
       - name: Create environment file
         run: |
@@ -31,7 +31,7 @@ jobs:
           echo "NEXT_STORAGE_PORT=${{ secrets.NEXT_STORAGE_PORT }}" >> .env.production
 
       - name: Build application
-        run: npm run build
+        run: yarn build
         env:
           NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
@@ -44,7 +44,7 @@ jobs:
           cp -r .next deployment/
           cp -r public deployment/
           cp package.json deployment/
-          cp package-lock.json deployment/
+          cp yarn.lock deployment/
           cp next.config.ts deployment/
           cp ecosystem.config.js deployment/
           cp .env.production deployment/
@@ -98,7 +98,7 @@ jobs:
 
             # Install TypeScript and wait for completion
             echo "Installing TypeScript..."
-            npm install -D --save-exact typescript
+            yarn add -D --exact typescript
             echo "TypeScript installation completed"
 
             # Start the application with PM2
