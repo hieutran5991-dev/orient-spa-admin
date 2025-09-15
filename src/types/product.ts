@@ -20,6 +20,7 @@ export interface Product {
   category_id: number;
   duration: number; // in minutes
   is_featured: boolean;
+  featured_no?: number;
   featured_product_description?: string;
   featured_product_detail?: string;
   image_url?: string;
@@ -68,5 +69,13 @@ export interface ProductResponse {
 }
 
 export interface ProductDeleteResponse {
+  message: string;
+}
+
+export interface UpdateFeaturedOrderRequest {
+  product_ids: number[];
+}
+
+export interface UpdateFeaturedOrderResponse {
   message: string;
 }

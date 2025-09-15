@@ -1,6 +1,6 @@
 import request from "@/lib/axios";
 import { AxiosResponse } from "axios";
-import { ProductLanguages, ProductListResponse, ProductResponse } from "@/types/product";
+import { ProductLanguages, ProductListResponse, ProductResponse, UpdateFeaturedOrderRequest, UpdateFeaturedOrderResponse } from "@/types/product";
 import { ProductFormData } from "@/lib/validations";
 import { Language } from "@/types/language";
 
@@ -75,4 +75,9 @@ export const updateProduct = async (id: number, form: FormData): Promise<AxiosRe
 // Delete product
 export const deleteProduct = async (id: number): Promise<AxiosResponse<void>> => {
   return await request.delete(`products/${id}`);
+};
+
+// Update featured products order
+export const updateFeaturedOrder = async (data: UpdateFeaturedOrderRequest): Promise<AxiosResponse<UpdateFeaturedOrderResponse>> => {
+  return await request.put('products/featured/order', data);
 };

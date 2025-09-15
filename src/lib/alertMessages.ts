@@ -71,6 +71,10 @@ export const AlertMessages: {
       title: 'Settings Updated Successfully!',
       message: 'The settings have been updated and saved.'
     },
+    FEATURED_ORDER_UPDATED: {
+      title: 'Featured Products Order Updated!',
+      message: 'The featured products order has been updated successfully.'
+    },
   },
 
   // Error messages
@@ -138,6 +142,10 @@ export const AlertMessages: {
     SETTINGS_UPDATE_ERROR: {
       title: 'Settings Update Error',
       message: 'Failed to update the settings. Please check your input and try again.'
+    },
+    FEATURED_ORDER_UPDATE_FAILED: {
+      title: 'Featured Order Update Failed',
+      message: 'Failed to update the featured products order. Please try again.'
     },
   },
 
