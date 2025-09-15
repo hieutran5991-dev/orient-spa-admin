@@ -141,8 +141,10 @@ export interface ProductFormData {
   description: MultiLanguageValue;
   category_id: string;
   duration: string;
-  price: MultiLanguageValue;
-  currency: MultiLanguageValue;
+  prices: {
+    VND: string;
+    USD: string;
+  };
   is_featured: boolean;
   featured_product_description?: MultiLanguageValue;
   featured_product_detail?: MultiLanguageValue;
@@ -154,8 +156,10 @@ export interface ProductFormErrors {
   description?: string;
   category_id?: string;
   duration?: string;
-  price?: string;
-  currency?: string;
+  prices?: {
+    VND?: string;
+    USD?: string;
+  };
   featured_product_description?: string;
   featured_product_detail?: string;
   image?: string;
@@ -208,14 +212,23 @@ export const validateProductForm = (formData: ProductFormData): ProductFormError
     }
   }
 
-  if (!validateRequired(formData.price.en)) {
-    errors.price = 'Price is required';
-  } else if (!validatePositiveNumber(formData.price.en)) {
-    errors.price = 'Price must be a positive number';
+  // Prices validation
+  const priceErrors: { VND?: string; USD?: string } = {};
+  
+  if (!validateRequired(formData.prices.VND)) {
+    priceErrors.VND = 'VND price is required';
+  } else if (!validatePositiveNumber(formData.prices.VND)) {
+    priceErrors.VND = 'VND price must be a positive number';
   }
 
-  if (!validateRequired(formData.currency.en)) {
-    errors.currency = 'Currency is required';
+  if (!validateRequired(formData.prices.USD)) {
+    priceErrors.USD = 'USD price is required';
+  } else if (!validatePositiveNumber(formData.prices.USD)) {
+    priceErrors.USD = 'USD price must be a positive number';
+  }
+
+  if (Object.keys(priceErrors).length > 0) {
+    errors.prices = priceErrors;
   }
 
   // Image validation

@@ -11,6 +11,7 @@ import {
   BOOKING_STATUS
 } from '@/constants/booking-status';
 import Select from '../form/Select';
+import { formatPriceWithCurrency } from '@/lib/currency';
 
 interface StatusChangeModalProps {
   isOpen: boolean;
@@ -152,9 +153,15 @@ const StatusChangeModal: React.FC<StatusChangeModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Total Price:
                       </label>
-                      <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                        {booking.total_price.toLocaleString('vi-VN')} {booking.currency}
-                      </p>
+                      <div className="mt-1 space-y-1">
+                        {Object.entries(booking.total_prices || {}).map(
+                          ([currencyCode, price]) => (
+                            <div key={currencyCode} className="text-sm text-gray-900 dark:text-white">
+                              {currencyCode.toUpperCase()}: {formatPriceWithCurrency(price, currencyCode)}
+                            </div>
+                          )
+                        )}
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -249,9 +256,15 @@ const StatusChangeModal: React.FC<StatusChangeModalProps> = ({
                               <span className="text-gray-700 dark:text-gray-300">
                                 {service.name}
                               </span>
-                              <span className="text-gray-900 dark:text-white font-medium">
-                                {service.price.toLocaleString('vi-VN')} {service.currency}
-                              </span>
+                              <div className="text-gray-900 dark:text-white font-medium space-y-1">
+                                {Object.entries(service.prices || {}).map(
+                                  ([currencyCode, price]) => (
+                                    <div key={currencyCode}>
+                                      {currencyCode.toUpperCase()}: {formatPriceWithCurrency(price, currencyCode)}
+                                    </div>
+                                  )
+                                )}
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -268,9 +281,15 @@ const StatusChangeModal: React.FC<StatusChangeModalProps> = ({
                       <span className="font-semibold text-gray-900 dark:text-white">
                         Total price
                       </span>
-                      <span className="font-semibold text-gray-900 dark:text-white">
-                        {booking.total_price.toLocaleString('vi-VN')} {booking.currency}
-                      </span>
+                      <div className="text-right space-y-1">
+                        {Object.entries(booking.total_prices || {}).map(
+                          ([currencyCode, price]) => (
+                            <div key={currencyCode} className="font-semibold text-gray-900 dark:text-white">
+                              {currencyCode.toUpperCase()}: {formatPriceWithCurrency(price, currencyCode)}
+                            </div>
+                          )
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

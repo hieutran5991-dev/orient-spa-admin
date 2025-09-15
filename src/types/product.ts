@@ -4,11 +4,13 @@ export interface ProductLanguages {
   [languageCode: string]: {
     name: string;
     description: string;
-    price: number;
-    currency: string;
     featured_product_description?: string;
     featured_product_detail?: string;
   };
+}
+
+export interface ProductPrices {
+  [currencyCode: string]: number;
 }
 
 export interface Product {
@@ -17,8 +19,6 @@ export interface Product {
   description: string;
   category_id: number;
   duration: number; // in minutes
-  price: number;
-  currency: string;
   is_featured: boolean;
   featured_product_description?: string;
   featured_product_detail?: string;
@@ -26,6 +26,7 @@ export interface Product {
   created_at?: string;
   updated_at?: string;
   translations: ProductLanguage[];
+  prices: ProductPrices;
   
   // Relations
   category?: Category;
@@ -35,8 +36,6 @@ export interface ProductLanguage {
   language_code: string;
   name: string;
   description: string;
-  price: number;
-  currency: string;
   featured_product_description?: string;
   featured_product_detail?: string;
 }

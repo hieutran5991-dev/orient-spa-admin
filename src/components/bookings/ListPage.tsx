@@ -21,6 +21,7 @@ import { HTTP_CODES } from "@/constants/http-codes";
 import DatePicker from "../form/date-picker";
 import Select from "../form/Select";
 import { createEndOfDay, createStartOfDay, formatDateForDisplay } from "@/lib/datetime";
+import { formatPriceWithCurrency } from "@/lib/currency";
 
 export default function ListPage({ bookings, isError }: { bookings: Booking[], isError: boolean }) {
   const { showSuccess, showError } = useAlert();
@@ -196,17 +197,21 @@ export default function ListPage({ bookings, isError }: { bookings: Booking[], i
       ),
     },
     {
-      key: 'total_price',
+      key: 'total_prices',
       header: 'Total Price',
       sortable: true,
       width: '12%',
       render: (value: unknown, row: Record<string, unknown>) => {
         const booking = row as unknown as Booking;
         return (
-          <div className="text-right">
-            <div className="font-medium text-gray-900 dark:text-white">
-              {booking.total_price?.toLocaleString()} {booking.currency}
-            </div>
+          <div className="text-left space-y-1">
+            {Object.entries(booking.total_prices || {}).map(
+              ([currencyCode, price]) => (
+                <div key={currencyCode} className="font-medium text-gray-900 dark:text-white">
+                  {currencyCode.toUpperCase()}: {formatPriceWithCurrency(price, currencyCode)}
+                </div>
+              )
+            )}
           </div>
         );
       },

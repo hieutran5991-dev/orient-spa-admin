@@ -1,11 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import PageBreadcrumb from '../common/PageBreadCrumb';
 import ComponentCard from '../common/ComponentCard';
-import { createProduct, initialFormData } from '@/api/product';
+import { createProduct, initializeFormData } from '@/api/product';
 import { validateProductForm, ProductFormData, ProductFormErrors } from '@/lib/validations';
 import { useAlert } from '@/context/AlertContext';
 import { AlertMessages, AlertConfigs } from '@/lib/alertMessages';
@@ -22,7 +21,6 @@ import Checkbox from '../form/input/Checkbox';
 import ImagePreview from '../form/ImagePreview';
 
 export default function CreateProductForm({ categories }: { categories: CategoryOption[] }) {
-  const router = useRouter();
   const { showSuccess, showError } = useAlert();
   const { availableLanguages } = useLanguage();
 
@@ -31,23 +29,17 @@ export default function CreateProductForm({ categories }: { categories: Category
     return acc;
   }, {} as MultiLanguageValue);
 
-  const initialPriceValue = availableLanguages.reduce((acc, language) => {
-    acc[language.code] = '0';
-    return acc;
-  }, {} as MultiLanguageValue);
-
-  const initialCurrencyValue = availableLanguages.reduce((acc, language) => {
-    acc[language.code] = 'VND';
-    return acc;
-  }, {} as MultiLanguageValue);
+  const initialPricesValue = {
+    VND: '0',
+    USD: '0'
+  };
 
   const [formData, setFormData] = useState<ProductFormData>({
     name: initialMultiLanguageValue,
     description: initialMultiLanguageValue,
     category_id: '',
     duration: '',
-    price: initialPriceValue,
-    currency: initialCurrencyValue,
+    prices: initialPricesValue,
     is_featured: false,
     featured_product_description: initialMultiLanguageValue,
     featured_product_detail: initialMultiLanguageValue,
@@ -108,10 +100,31 @@ export default function CreateProductForm({ categories }: { categories: Category
     }
   };
 
-  const handleMultiLanguageChange = (field: 'name' | 'description' | 'price' | 'currency' | 'featured_product_description' | 'featured_product_detail', value: MultiLanguageValue) => {
+  const handleMultiLanguageChange = (field: 'name' | 'description' | 'featured_product_description' | 'featured_product_detail', value: MultiLanguageValue) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field as keyof ProductFormErrors]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  const handlePriceChange = (currency: 'VND' | 'USD', value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      prices: {
+        ...prev.prices,
+        [currency]: value
+      }
+    }));
+    
+    // Clear error when user starts typing
+    if (errors.prices?.[currency]) {
+      setErrors(prev => ({
+        ...prev,
+        prices: {
+          ...prev.prices,
+          [currency]: undefined
+        }
+      }));
     }
   };
 
@@ -125,7 +138,7 @@ export default function CreateProductForm({ categories }: { categories: Category
     setIsSubmitting(true);
     
     try {
-      const submitData = initialFormData(formData, availableLanguages);
+      const submitData = initializeFormData(formData, availableLanguages);
 
       const response = await createProduct(submitData);
 
@@ -135,7 +148,6 @@ export default function CreateProductForm({ categories }: { categories: Category
           AlertMessages.SUCCESS.PRODUCT_CREATED.message,
           AlertConfigs.SUCCESS
         );
-        router.push('/products');
       } else {
         showError(
           AlertMessages.ERROR.SAVE_ERROR.title,
@@ -227,26 +239,43 @@ export default function CreateProductForm({ categories }: { categories: Category
               />
             </div>
 
-            {/* Price Field */}
-            <MultiLanguageInput
-                label="Price"
-                value={formData.price}
-                onChange={(value) => handleMultiLanguageChange('price', value)}
-                placeholder="Enter price"
-                required={true}
-                error={errors.price}
-                type="number"
-              />
+            {/* Price Fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* VND Price Field */}
+              <div>
+                <label htmlFor="price_vnd" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Price (VND) <span className="text-red-500">*</span>
+                </label>
+                <InputField
+                  type="number"
+                  id="price_vnd"
+                  name="price_vnd"
+                  value={formData.prices.VND}
+                  onChange={(e) => handlePriceChange('VND', e.target.value)}
+                  placeholder="Enter price in VND"
+                  error={!!errors.prices?.VND}
+                  hint={errors.prices?.VND || "Enter price in Vietnamese Dong"}
+                />
+              </div>
 
-            {/* Currency Field */}
-            <MultiLanguageInput
-                label="Currency"
-                value={formData.currency}
-                onChange={(value) => handleMultiLanguageChange('currency', value)}
-                placeholder="Enter currency"
-                required={true}
-                error={errors.currency}
-              />
+              {/* USD Price Field */}
+              <div>
+                <label htmlFor="price_usd" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Price (USD) <span className="text-red-500">*</span>
+                </label>
+                <InputField
+                  type="number"
+                  id="price_usd"
+                  name="price_usd"
+                  value={formData.prices.USD}
+                  onChange={(e) => handlePriceChange('USD', e.target.value)}
+                  placeholder="Enter price in USD"
+                  error={!!errors.prices?.USD}
+                  hint={errors.prices?.USD || "Enter price in US Dollar"}
+                  step={0.01}
+                />
+              </div>
+            </div>
 
             {/* Image Upload Field */}
             <div>

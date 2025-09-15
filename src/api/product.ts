@@ -4,7 +4,7 @@ import { ProductLanguages, ProductListResponse, ProductResponse } from "@/types/
 import { ProductFormData } from "@/lib/validations";
 import { Language } from "@/types/language";
 
-export const initialFormData = (form: ProductFormData, availableLanguages: Language[]) => {
+export const initializeFormData = (form: ProductFormData, availableLanguages: Language[]) => {
   const formData = new FormData();
   
   // Add basic fields
@@ -12,20 +12,24 @@ export const initialFormData = (form: ProductFormData, availableLanguages: Langu
   formData.append('duration', parseInt(form.duration).toString());
   formData.append('is_featured', form.is_featured.toString());
   
+  // Add prices
+  formData.append('prices', JSON.stringify({
+    VND: parseFloat(form.prices.VND),
+    USD: parseFloat(form.prices.USD)
+  }));
+  
   // Add image file
   if (form.image) {
     formData.append('image', form.image!);
   }
 
   const translations = availableLanguages.reduce((acc, language) => {
-    if (form.name[language.code] && form.description[language.code] && form.price[language.code] && form.currency[language.code]
+    if (form.name[language.code] && form.description[language.code]
       && (!form.is_featured || (form.featured_product_description?.[language.code] && form.featured_product_detail?.[language.code]))
     ) {
       acc[language.code] = {
         name: form.name[language.code],
         description: form.description[language.code],
-        price: parseFloat(form.price[language.code]),
-        currency: form.currency[language.code],
         ...(form.is_featured && form.featured_product_description?.[language.code] && form.featured_product_detail?.[language.code] && {
           featured_product_description: form.featured_product_description[language.code],
           featured_product_detail: form.featured_product_detail[language.code],
