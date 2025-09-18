@@ -138,7 +138,7 @@ export default function ListPage({ bookings, isError }: { bookings: Booking[], i
       key: 'id',
       header: 'ID',
       sortable: true,
-      width: '8%',
+      width: '5%',
       render: (value: unknown) => (
         <span className="font-medium text-blue-600 dark:text-blue-400">#{String(value)}</span>
       ),
@@ -159,11 +159,22 @@ export default function ListPage({ bookings, isError }: { bookings: Booking[], i
               {booking.email}
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              {booking.phone} {booking.social_account_id ? `(${booking.social_account_id})` : ''}
+              {booking.phone}
             </div>
           </div>
         );
       },
+    },
+    {
+      key: 'social_account_id',
+      header: 'Social ID',
+      sortable: true,
+      width: '10%',
+      render: (value: unknown) => (
+        <span className="font-medium text-gray-700 dark:text-gray-300">
+          {value ? String(value) : 'Not Provided'}
+        </span>
+      ),
     },
     {
       key: 'booking_date',
@@ -191,7 +202,7 @@ export default function ListPage({ bookings, isError }: { bookings: Booking[], i
       key: 'number_of_people',
       header: 'Guests',
       sortable: true,
-      width: '8%',
+      width: '10%',
       render: (value: unknown) => (
         <span className="font-medium text-green-600 dark:text-green-400">{String(value)}</span>
       ),
@@ -200,7 +211,7 @@ export default function ListPage({ bookings, isError }: { bookings: Booking[], i
       key: 'total_prices',
       header: 'Total Price',
       sortable: true,
-      width: '12%',
+      width: '15%',
       render: (value: unknown, row: Record<string, unknown>) => {
         const booking = row as unknown as Booking;
         return (
@@ -220,7 +231,7 @@ export default function ListPage({ bookings, isError }: { bookings: Booking[], i
       key: 'status',
       header: 'Status',
       sortable: true,
-      width: '15%',
+      width: '10%',
       render: (value: unknown, row: Record<string, unknown>) => {
         const booking = row as unknown as Booking;
         const status = booking.status as BookingStatus;
@@ -246,7 +257,7 @@ export default function ListPage({ bookings, isError }: { bookings: Booking[], i
       key: 'actions',
       header: 'Actions',
       sortable: false,
-      width: '22%',
+      width: '20%',
       render: (value: unknown, row: Record<string, unknown>) => (
           <button
             onClick={() => openStatusChangeModal(row as unknown as Booking)}

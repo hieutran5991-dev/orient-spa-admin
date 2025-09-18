@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import ListPage from '@/components/categories/ListPage';
 import { getCategories } from '@/api/category';
 
+export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
   title: "Categories Management | SPA Admin Dashboard",
   description: "Manage spa service categories, view details, and handle category operations. Access comprehensive category information including descriptions and service types.",

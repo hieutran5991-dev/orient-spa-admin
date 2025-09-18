@@ -122,7 +122,15 @@ const StatusChangeModal: React.FC<StatusChangeModalProps> = ({
                         Phone:
                       </label>
                       <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                        {booking.phone} {booking.social_account_id ? `(${booking.social_account_id})` : ''}
+                        {booking.phone}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Social Account ID:
+                      </label>
+                      <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                        {booking.social_account_id || 'Not Provided'}
                       </p>
                     </div>
                     <div>

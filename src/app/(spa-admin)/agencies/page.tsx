@@ -3,6 +3,7 @@ import { getAgencies } from '@/api/agency';
 import ListPage from '@/components/agencies/ListPage';
 import { Agency } from '@/types/agency';
 
+export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
   title: "Agencies Management | SPA Admin Dashboard",
   description: "Manage spa agencies, view details, and handle agency operations. Access comprehensive agency information including contact details, operating hours, and capacity.",
