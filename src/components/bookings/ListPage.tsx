@@ -159,7 +159,7 @@ export default function ListPage({ bookings, isError }: { bookings: Booking[], i
               {booking.email}
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              {booking.phone}
+              <strong>{booking.tel_prefix}</strong>{booking.phone} {booking.nation ? `(${booking.nation})` : ''}
             </div>
           </div>
         );

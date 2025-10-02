@@ -122,7 +122,15 @@ const StatusChangeModal: React.FC<StatusChangeModalProps> = ({
                         Phone:
                       </label>
                       <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                        {booking.phone}
+                        <strong>{booking.tel_prefix}</strong>{booking.phone}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Nation:
+                      </label>
+                      <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                        {booking.nation}
                       </p>
                     </div>
                     <div>

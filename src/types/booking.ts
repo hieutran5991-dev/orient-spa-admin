@@ -13,7 +13,9 @@ export interface Booking {
   };
   full_name: string;
   email: string;
+  tel_prefix?: string;
   phone: string;
+  nation?: string;
   social_account_id?: string;
   note?: string;
   total_prices: ProductPrices;
