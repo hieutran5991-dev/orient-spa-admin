@@ -20,10 +20,21 @@ import { AlertMessages, AlertConfigs } from "@/lib/alertMessages";
 import { HTTP_CODES } from "@/constants/http-codes";
 import DatePicker from "../form/date-picker";
 import Select from "../form/Select";
-import { createEndOfDay, createStartOfDay, formatDateForDisplay } from "@/lib/datetime";
+import { formatDateForDisplay } from "@/lib/datetime";
 import { formatPriceWithCurrency } from "@/lib/currency";
+import { PaginationInfo } from "@/types/booking";
+import { ChevronLeftIcon } from "@/icons";
+import Link from "next/link";
 
-export default function ListPage({ bookings, isError }: { bookings: Booking[], isError: boolean }) {
+interface ListPageProps {
+  bookings: Booking[];
+  pagination: PaginationInfo | null;
+  isError: boolean;
+  isLoading: boolean;
+  onPageChange: (page: number) => void;
+}
+
+export default function ListPage({ bookings, pagination, isError, isLoading, onPageChange }: ListPageProps) {
   const { showSuccess, showError } = useAlert();
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -49,12 +60,12 @@ export default function ListPage({ bookings, isError }: { bookings: Booking[], i
         let isInRange = true;
 
         if (dateRange.startDate) {
-          const startDate = createStartOfDay(dateRange.startDate);
+          const startDate = dateRange.startDate;
           isInRange = bookingDate >= startDate;
         }
 
         if (dateRange.endDate) {
-          const endDate = createEndOfDay(dateRange.endDate);
+          const endDate = dateRange.endDate;
           isInRange = isInRange && bookingDate <= endDate;
         }
 
@@ -341,7 +352,10 @@ export default function ListPage({ bookings, isError }: { bookings: Booking[], i
         <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-600 dark:text-gray-400">
-              Showing {filteredBookings.length} of {bookings.length} bookings
+              {pagination 
+                ? `Showing ${pagination.from} to ${pagination.to} of ${pagination.total} bookings`
+                : `Showing ${filteredBookings.length} of ${bookings.length} bookings`
+              }
             </span>
             {(dateRange.startDate || dateRange.endDate) && (
               <span className="text-xs text-gray-500 dark:text-gray-400">
@@ -355,14 +369,90 @@ export default function ListPage({ bookings, isError }: { bookings: Booking[], i
       </ComponentCard>
       
       <ComponentCard title="Bookings">
-        <DataTable
-          data={filteredBookings as unknown as Record<string, unknown>[]}
-          columns={columns}
-          itemsPerPage={10}
-          searchable={false}
-          sortable={true}
-          emptyMessage={isError ? "Failed to load bookings. Please try again later." : "No bookings found."}
-        />
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">All Bookings</h2>
+          <Link
+            href="/bookings/create"
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-blue-600 dark:hover:bg-blue-700 transition-colors"
+          >
+            + Create Booking
+          </Link>
+        </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-gray-500 dark:text-gray-400">Loading bookings...</div>
+          </div>
+        ) : (
+          <>
+            <DataTable
+              data={filteredBookings as unknown as Record<string, unknown>[]}
+              columns={columns}
+              itemsPerPage={pagination?.per_page || 10}
+              searchable={false}
+              sortable={true}
+              emptyMessage={isError ? "Failed to load bookings. Please try again later." : "No bookings found."}
+              disablePagination={true}
+            />
+            
+            {/* Server-side Pagination */}
+            {pagination && pagination.last_page > 1 && (
+              <div className="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 mt-4">
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  Showing {pagination.from} to {pagination.to} of {pagination.total} results
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  {/* Previous Button */}
+                  <button
+                    onClick={() => onPageChange(pagination.current_page - 1)}
+                    disabled={pagination.current_page === 1}
+                    className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700"
+                  >
+                    <ChevronLeftIcon className="w-4 h-4 stroke-current" />
+                  </button>
+                  
+                  {/* Page Numbers */}
+                  {Array.from({ length: Math.min(5, pagination.last_page) }, (_, i) => {
+                    let page: number;
+                    if (pagination.last_page <= 5) {
+                      page = i + 1;
+                    } else if (pagination.current_page <= 3) {
+                      page = i + 1;
+                    } else if (pagination.current_page >= pagination.last_page - 2) {
+                      page = pagination.last_page - 4 + i;
+                    } else {
+                      page = pagination.current_page - 2 + i;
+                    }
+                    return page;
+                  }).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => onPageChange(page)}
+                      className={`px-3 py-2 text-sm font-medium rounded-lg ${
+                        pagination.current_page === page
+                          ? "bg-blue-600 text-white"
+                          : "text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  
+                  {/* Next Button */}
+                  <button
+                    onClick={() => onPageChange(pagination.current_page + 1)}
+                    disabled={pagination.current_page === pagination.last_page}
+                    className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700"
+                  >
+                    <div className="rotate-180">
+                      <ChevronLeftIcon className="w-4 h-4 stroke-current" />
+                    </div>
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </ComponentCard>
 
       <StatusChangeModal

@@ -1,4 +1,5 @@
 import { Category } from "./category";
+import { PaginationInfo } from "./booking";
 
 export interface ProductLanguages {
   [languageCode: string]: {
@@ -52,6 +53,7 @@ export interface CreateProductRequest {
 export interface ProductListResponse {
   message: string;
   data: Product[];
+  pagination: PaginationInfo;
 }
 
 export interface UpdateProductRequest {

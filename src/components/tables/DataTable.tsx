@@ -28,6 +28,7 @@ export interface DataTableProps {
   actions?: (row: Record<string, unknown>) => React.ReactNode;
   emptyMessage?: string;
   className?: string;
+  disablePagination?: boolean;
 }
 
 export default function DataTable({
@@ -39,6 +40,7 @@ export default function DataTable({
   actions,
   emptyMessage = "No data available",
   className = "",
+  disablePagination = false,
 }: DataTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -93,10 +95,13 @@ export default function DataTable({
 
   // Paginate data
   const paginatedData = useMemo(() => {
+    if (disablePagination) {
+      return sortedData;
+    }
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     return sortedData.slice(startIndex, endIndex);
-  }, [sortedData, currentPage, itemsPerPage]);
+  }, [sortedData, currentPage, itemsPerPage, disablePagination]);
 
   // Calculate pagination info
   const totalPages = Math.ceil(sortedData.length / itemsPerPage);
@@ -280,7 +285,7 @@ export default function DataTable({
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
+      {!disablePagination && totalPages > 1 && (
         <div className="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-500 dark:text-gray-400">
             Showing {startItem} to {endItem} of {sortedData.length} results

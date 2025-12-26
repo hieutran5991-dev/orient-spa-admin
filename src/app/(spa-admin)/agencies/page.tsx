@@ -1,7 +1,5 @@
 import { Metadata } from 'next';
-import { getAgencies } from '@/api/agency';
-import ListPage from '@/components/agencies/ListPage';
-import { Agency } from '@/types/agency';
+import AgenciesClient from './AgenciesClient';
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
@@ -15,19 +13,6 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function AgenciesPage() {
-  let agencies: Agency[] = [];
-  let isError = false;
-  try {
-    const response = await getAgencies();
-    agencies = response.data?.data || [];
-
-  } catch (error) {
-    console.error('Error fetching agencies:', error);
-    isError = true;
-  }
-
-  return (
-    <ListPage agencies={agencies} isError={isError} />
-  );
+export default function AgenciesPage() {
+  return <AgenciesClient />;
 }

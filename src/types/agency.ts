@@ -1,3 +1,5 @@
+import { PaginationInfo } from "./booking";
+
 export interface AgencyLanguages {
   [languageCode: string]: {
     name: string;
@@ -29,6 +31,7 @@ export interface AgencyLanguage {
 export interface AgencyListResponse {
   message: string;
   data: Agency[];
+  pagination: PaginationInfo;
 }
 
 export interface AgencyByIdResponse {

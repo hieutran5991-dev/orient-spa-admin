@@ -41,12 +41,13 @@ export default function DatePicker({
       mode: mode || "single",
       static: false,
       monthSelectorType: "static",
-      dateFormat: "Y-m-d H:i:s",
+      dateFormat: "Y-m-d",
+      enableTime: false,
       defaultDate: initialDate,
       onChange: (selectedDates) => {
         if (selectedDates && selectedDates.length > 0) {
           const selectedDate = selectedDates[0];
-          const dateString = formatDateForDisplay(selectedDate, true);
+          const dateString = formatDateForDisplay(selectedDate, false);
           setSelectedDate(dateString);
 
           if (onChange) {

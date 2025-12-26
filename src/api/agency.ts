@@ -9,8 +9,13 @@ import {
 } from "@/types/agency";
 
 // Get list of agencies
-export const getAgencies = async (): Promise<AxiosResponse<AgencyListResponse>> => {
-  return await request.get('agencies');
+export const getAgencies = async (page: number = 1, perPage: number = 10): Promise<AxiosResponse<AgencyListResponse>> => {
+  return await request.get('agencies', {
+    params: {
+      page,
+      per_page: perPage,
+    },
+  });
 };
 
 // Get single agency by ID

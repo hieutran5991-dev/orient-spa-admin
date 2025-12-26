@@ -45,8 +45,13 @@ export const initializeFormData = (form: ProductFormData, availableLanguages: La
 };
 
 // Get list of products
-export const getProducts = async (): Promise<AxiosResponse<ProductListResponse>> => {
-  return await request.get('products');
+export const getProducts = async (page: number = 1, perPage: number = 10): Promise<AxiosResponse<ProductListResponse>> => {
+  return await request.get('products', {
+    params: {
+      page,
+      per_page: perPage,
+    },
+  });
 };
 
 // Get single product by ID

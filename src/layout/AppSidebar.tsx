@@ -10,6 +10,7 @@ import {
   GroupIcon,
   HorizontaLDots,
   PageIcon,
+  PieChartIcon,
   TableIcon,
   UserCircleIcon,
 } from "../icons/index";
@@ -22,6 +23,11 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
+  {
+    icon: <PieChartIcon />,
+    name: "Dashboard",
+    path: "/dashboard",
+  },
   {
     icon: <UserCircleIcon />,
     name: "User",

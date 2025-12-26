@@ -1,31 +1,32 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import ListPage from '@/components/bookings/ListPage';
-import { getBookings } from '@/api/booking';
-import { Booking, PaginationInfo } from '@/types/booking';
+import ListPage from '@/components/categories/ListPage';
+import { getCategories } from '@/api/category';
+import { Category } from '@/types/category';
+import { PaginationInfo } from '@/types/booking';
 
-export default function BookingsClient() {
-  const [bookings, setBookings] = useState<Booking[]>([]);
+export default function CategoriesClient() {
+  const [categories, setCategories] = useState<Category[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [isError, setIsError] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [perPage] = useState<number>(10);
 
-  const fetchBookings = async (page: number) => {
+  const fetchCategories = async (page: number) => {
     setIsLoading(true);
     try {
-      const response = await getBookings(page, perPage);
+      const response = await getCategories(page, perPage);
       if (response.data?.data && response.data?.pagination) {
-        setBookings(response.data.data);
+        setCategories(response.data.data);
         setPagination(response.data.pagination);
         setIsError(false);
       } else {
         setIsError(true);
       }
     } catch (error) {
-      console.error('Error fetching bookings:', error);
+      console.error('Error fetching categories:', error);
       setIsError(true);
     } finally {
       setIsLoading(false);
@@ -33,7 +34,7 @@ export default function BookingsClient() {
   };
 
   useEffect(() => {
-    fetchBookings(currentPage);
+    fetchCategories(currentPage);
   }, [currentPage]);
 
   const handlePageChange = (page: number) => {
@@ -42,7 +43,7 @@ export default function BookingsClient() {
 
   return (
     <ListPage 
-      bookings={bookings} 
+      categories={categories} 
       pagination={pagination}
       isError={isError}
       isLoading={isLoading}
@@ -50,3 +51,4 @@ export default function BookingsClient() {
     />
   );
 }
+

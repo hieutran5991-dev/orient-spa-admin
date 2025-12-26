@@ -1,3 +1,5 @@
+import { PaginationInfo } from "./booking";
+
 export interface CategoryLanguages {
   [languageCode: string]: {
     name: string;
@@ -23,6 +25,7 @@ export interface CategoryLanguage {
 export interface CategoryListResponse {
   message: string;
   data: Category[];
+  pagination: PaginationInfo;
 }
 
 export interface CategoryOption {

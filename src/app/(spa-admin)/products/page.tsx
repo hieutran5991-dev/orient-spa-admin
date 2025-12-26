@@ -1,7 +1,5 @@
 import { Metadata } from 'next'
-import ListPage from '@/components/products/ListPage'
-import { getProducts } from '@/api/product'
-import { getCategoryOptions } from '@/api/category'
+import ProductsClient from './ProductsClient'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
@@ -16,17 +14,6 @@ export const metadata: Metadata = {
   }
 }
 
-export default async function ProductsPage() {
-  try {
-    const response = await getProducts()
-    const categoriesRes = await getCategoryOptions()
-
-    const products = response.data?.data || []
-    const categories = categoriesRes.data?.data || []
-
-    return <ListPage products={products} categories={categories} isError={false} />
-  } catch (error) {
-    console.error('Error fetching products:', error)
-    return <ListPage products={[]} categories={[]} isError={true} />
-  }
+export default function ProductsPage() {
+  return <ProductsClient />
 }

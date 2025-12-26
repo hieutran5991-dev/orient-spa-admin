@@ -15,16 +15,26 @@ import { CategoryOption } from '@/types/category'
 import { LANGUAGES } from '@/constants/languages'
 import { formatPriceWithCurrency } from '@/lib/currency'
 import InputField from '../form/input/InputField'
+import { PaginationInfo } from '@/types/booking'
+import { ChevronLeftIcon } from '@/icons'
+
+interface ListPageProps {
+  products: Product[]
+  categories: CategoryOption[]
+  pagination: PaginationInfo | null
+  isError: boolean
+  isLoading: boolean
+  onPageChange: (page: number) => void
+}
 
 export default function ListPage({
   products,
   categories,
-  isError
-}: {
-  products: Product[]
-  categories: CategoryOption[]
-  isError: boolean
-}) {
+  pagination,
+  isError,
+  isLoading,
+  onPageChange
+}: ListPageProps) {
   const { showSuccess, showError, showWarning } = useAlert()
 
   // State for featured products management
@@ -434,20 +444,87 @@ export default function ListPage({
       </div>
 
       <ComponentCard title={isFeaturedMode ? 'Featured Products Order' : 'Products'}>
-        <DataTable
-          data={filteredProducts as unknown as Record<string, unknown>[]}
-          columns={columns}
-          itemsPerPage={isFeaturedMode ? filteredProducts.length : 10}
-          searchable={!isFeaturedMode}
-          sortable={!isFeaturedMode}
-          emptyMessage={
-            isError
-              ? 'Failed to load products. Please try again later.'
-              : isFeaturedMode
-              ? 'No featured products found. Mark some products as featured first.'
-              : 'No products found. Create your first product to get started.'
-          }
-        />
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-gray-500 dark:text-gray-400">Loading products...</div>
+          </div>
+        ) : (
+          <>
+            <DataTable
+              data={filteredProducts as unknown as Record<string, unknown>[]}
+              columns={columns}
+              itemsPerPage={isFeaturedMode ? filteredProducts.length : (pagination?.per_page || 10)}
+              searchable={!isFeaturedMode}
+              sortable={!isFeaturedMode}
+              emptyMessage={
+                isError
+                  ? 'Failed to load products. Please try again later.'
+                  : isFeaturedMode
+                  ? 'No featured products found. Mark some products as featured first.'
+                  : 'No products found. Create your first product to get started.'
+              }
+              disablePagination={!isFeaturedMode}
+            />
+            
+            {/* Server-side Pagination */}
+            {!isFeaturedMode && pagination && pagination.last_page > 1 && (
+              <div className="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 mt-4">
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  Showing {pagination.from} to {pagination.to} of {pagination.total} results
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  {/* Previous Button */}
+                  <button
+                    onClick={() => onPageChange(pagination.current_page - 1)}
+                    disabled={pagination.current_page === 1}
+                    className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700"
+                  >
+                    <ChevronLeftIcon className="w-4 h-4 stroke-current" />
+                  </button>
+                  
+                  {/* Page Numbers */}
+                  {Array.from({ length: Math.min(5, pagination.last_page) }, (_, i) => {
+                    let page: number;
+                    if (pagination.last_page <= 5) {
+                      page = i + 1;
+                    } else if (pagination.current_page <= 3) {
+                      page = i + 1;
+                    } else if (pagination.current_page >= pagination.last_page - 2) {
+                      page = pagination.last_page - 4 + i;
+                    } else {
+                      page = pagination.current_page - 2 + i;
+                    }
+                    return page;
+                  }).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => onPageChange(page)}
+                      className={`px-3 py-2 text-sm font-medium rounded-lg ${
+                        pagination.current_page === page
+                          ? "bg-blue-600 text-white"
+                          : "text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  
+                  {/* Next Button */}
+                  <button
+                    onClick={() => onPageChange(pagination.current_page + 1)}
+                    disabled={pagination.current_page === pagination.last_page}
+                    className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700"
+                  >
+                    <div className="rotate-180">
+                      <ChevronLeftIcon className="w-4 h-4 stroke-current" />
+                    </div>
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </ComponentCard>
     </div>
   )

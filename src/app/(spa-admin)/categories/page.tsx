@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
-import ListPage from '@/components/categories/ListPage';
-import { getCategories } from '@/api/category';
+import CategoriesClient from './CategoriesClient';
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
@@ -14,14 +13,6 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function CategoriesPage() {
-  try {
-    const response = await getCategories();
-    const categories = response.data?.data || [];
-
-    return <ListPage categories={categories} isError={false} />;
-  } catch (error) {
-    console.error('Error fetching categories:', error);
-    return <ListPage categories={[]} isError={true} />;
-  }
+export default function CategoriesPage() {
+  return <CategoriesClient />;
 }

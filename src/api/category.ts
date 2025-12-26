@@ -10,8 +10,13 @@ import {
 } from "@/types/category";
 
 // Get list of categories
-export const getCategories = async (): Promise<AxiosResponse<CategoryListResponse>> => {
-  return await request.get('categories');
+export const getCategories = async (page: number = 1, perPage: number = 10): Promise<AxiosResponse<CategoryListResponse>> => {
+  return await request.get('categories', {
+    params: {
+      page,
+      per_page: perPage,
+    },
+  });
 };
 
 // Get single category by ID
