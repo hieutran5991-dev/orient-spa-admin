@@ -8,10 +8,10 @@ interface AuthGuardProps {
   children: React.ReactNode;
 }
 
-const publicRoutes = ['/signin', '/signup', '/404', '/500'];
+const publicRoutes = ['/signin', '/signup', '/404', '/500', '/account-pending'];
 
 export default function AuthGuard({ children }: AuthGuardProps) {
-  const { isAuthenticated, isLoading, validateToken } = useAuth();
+  const { isAuthenticated, isLoading, user, validateToken } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [isValidating, setIsValidating] = useState(true);
@@ -23,6 +23,15 @@ export default function AuthGuard({ children }: AuthGuardProps) {
       }
 
       const isPublicRoute = publicRoutes.includes(pathname);
+
+      // If user is authenticated but inactive, redirect to account-pending
+      if (isAuthenticated && user && user.is_active === false) {
+        if (pathname !== '/account-pending') {
+          router.push('/account-pending');
+        }
+        setIsValidating(false);
+        return;
+      }
 
       if (!isAuthenticated && !isPublicRoute) {
         router.push('/signin');
@@ -38,7 +47,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     };
 
     checkAuth();
-  }, [isLoading, isAuthenticated, pathname, router, validateToken]);
+  }, [isLoading, isAuthenticated, user, pathname, router, validateToken]);
 
   // Show loading when validating
   if (isLoading || isValidating) {

@@ -16,11 +16,25 @@ export default function SignInForm() {
       if (credentialResponse.credential) {
         await login(credentialResponse.credential);
         
-        // Redirect to dashboard after successful login
-        router.push('/');
+        // Only redirect to dashboard if login was successful and not redirected to pending page
+        // (AuthContext will handle redirect to /account-pending if account is inactive)
+        if (typeof window !== 'undefined' && !window.location.pathname.includes('account-pending')) {
+          router.push('/');
+        }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Login failed:', error);
+      
+      // Don't show error if redirected to pending page
+      const errorMessage = (error as { response?: { data?: { message?: string; error?: string } }; message?: string })?.response?.data?.message || 
+                          (error as { response?: { data?: { message?: string; error?: string } }; message?: string })?.response?.data?.error || 
+                          (error as { message?: string })?.message || '';
+      if (errorMessage.toLowerCase().includes('inactive') || 
+          errorMessage.toLowerCase().includes('account is inactive')) {
+        // Will be redirected by AuthContext, don't show error
+        return;
+      }
+      
       setError('Login failed. Please try again.');
     }
   };

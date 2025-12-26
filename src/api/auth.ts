@@ -8,6 +8,7 @@ export interface User {
   avatar?: string;
   role?: string;
   permissions?: string[];
+  is_active?: boolean;
 }
 
 export interface AuthResponse {
