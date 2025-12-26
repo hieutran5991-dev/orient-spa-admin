@@ -1,14 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import ListPage from '@/components/products/ListPage';
 import { getProducts } from '@/api/product';
 import { getCategoryOptions } from '@/api/category';
 import { Product } from '@/types/product';
 import { CategoryOption } from '@/types/category';
 import { PaginationInfo } from '@/types/booking';
+import { useAlert } from '@/context/AlertContext';
+import { AlertMessages, AlertConfigs } from '@/lib/alertMessages';
+import { isPermissionError } from '@/lib/errorHandler';
 
 export default function ProductsClient() {
+  const { showError } = useAlert();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
@@ -16,6 +20,7 @@ export default function ProductsClient() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [perPage] = useState<number>(10);
+  const hasShownErrorRef = useRef<boolean>(false);
 
   const fetchProducts = async (page: number) => {
     setIsLoading(true);
@@ -29,6 +34,7 @@ export default function ProductsClient() {
         setProducts(productsResponse.data.data);
         setPagination(productsResponse.data.pagination);
         setIsError(false);
+        hasShownErrorRef.current = false; // Reset on success
       } else {
         setIsError(true);
       }
@@ -39,6 +45,16 @@ export default function ProductsClient() {
     } catch (error) {
       console.error('Error fetching products:', error);
       setIsError(true);
+      
+      // Show error alert if it's a permission error and only once
+      if (isPermissionError(error) && !hasShownErrorRef.current) {
+        hasShownErrorRef.current = true;
+        showError(
+          AlertMessages.ERROR.PERMISSION_DENIED.title,
+          AlertMessages.ERROR.PERMISSION_DENIED.message,
+          AlertConfigs.ERROR
+        );
+      }
     } finally {
       setIsLoading(false);
     }

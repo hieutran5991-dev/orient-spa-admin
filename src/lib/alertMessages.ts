@@ -100,8 +100,12 @@ export const AlertMessages: {
       message: 'You do not have permission to perform this action.'
     },
     FORBIDDEN: {
-      title: 'Access Denied',
-      message: 'You are not allowed to access this resource.'
+      title: 'Không có quyền truy cập',
+      message: 'Bạn không có quyền thực hiện hành động này. Vui lòng liên hệ quản trị viên nếu bạn cần quyền truy cập.'
+    },
+    PERMISSION_DENIED: {
+      title: 'Không có quyền thực hiện',
+      message: 'Bạn không có quyền thực hiện hành động này. Vui lòng kiểm tra lại quyền của bạn hoặc liên hệ quản trị viên.'
     },
     AGENCY_NOT_FOUND: {
       title: 'Agency Not Found',

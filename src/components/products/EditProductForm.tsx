@@ -12,6 +12,7 @@ import { validateProductForm, ProductFormData, ProductFormErrors } from '@/lib/v
 import { useAlert } from '@/context/AlertContext';
 import { AlertMessages, AlertConfigs } from '@/lib/alertMessages';
 import { HTTP_CODES } from '@/constants/http-codes';
+import { getErrorMessage, getErrorTitle, isPermissionError } from '@/lib/errorHandler';
 import { MultiLanguageInput } from '../form/MultiLanguageInput';
 import { MultiLanguageTextarea } from '../form/MultiLanguageTextarea';
 import { MultiLanguageValue } from '@/types/language';
@@ -229,9 +230,13 @@ export default function EditProductForm({ categories }: { categories: CategoryOp
       }
     } catch (error) {
       console.error('Error updating product:', error);
+      const errorTitle = isPermissionError(error) 
+        ? AlertMessages.ERROR.PERMISSION_DENIED.title 
+        : getErrorTitle(error);
+      const errorMessage = getErrorMessage(error);
       showError(
-        AlertMessages.ERROR.NETWORK_ERROR.title,
-        AlertMessages.ERROR.NETWORK_ERROR.message,
+        errorTitle,
+        errorMessage,
         AlertConfigs.ERROR
       );
     } finally {

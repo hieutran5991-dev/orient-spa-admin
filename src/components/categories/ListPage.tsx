@@ -7,6 +7,7 @@ import { Category } from "@/types/category";
 import { deleteCategory } from "@/api/category";
 import { useAlert } from "@/context/AlertContext";
 import { AlertMessages, AlertConfigs } from "@/lib/alertMessages";
+import { getErrorMessage, getErrorTitle, isPermissionError } from "@/lib/errorHandler";
 import PencilIcon from "@/icons/pencil.svg";
 import TrashIcon from "@/icons/trash.svg";
 import { HTTP_CODES } from '@/constants/http-codes';
@@ -96,9 +97,13 @@ export default function ListPage({ categories, pagination, isError, isLoading, o
         }
       } catch (error) {
         console.error('Error deleting category:', error);
+        const errorTitle = isPermissionError(error) 
+          ? AlertMessages.ERROR.PERMISSION_DENIED.title 
+          : getErrorTitle(error);
+        const errorMessage = getErrorMessage(error);
         showError(
-          AlertMessages.ERROR.NETWORK_ERROR.title,
-          AlertMessages.ERROR.NETWORK_ERROR.message,
+          errorTitle,
+          errorMessage,
           AlertConfigs.ERROR
         );
       }

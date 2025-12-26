@@ -9,6 +9,7 @@ import { deleteProduct, updateFeaturedOrder } from '@/api/product'
 import { useAlert } from '@/context/AlertContext'
 import { AlertMessages, AlertConfigs } from '@/lib/alertMessages'
 import { HTTP_CODES } from '@/constants/http-codes'
+import { getErrorMessage, getErrorTitle, isPermissionError } from '@/lib/errorHandler'
 import PencilIcon from '@/icons/pencil.svg'
 import TrashIcon from '@/icons/trash.svg'
 import { CategoryOption } from '@/types/category'
@@ -222,7 +223,11 @@ export default function ListPage({
       }
     } catch (error) {
       console.error('Error updating featured order:', error)
-      showError(AlertMessages.ERROR.NETWORK_ERROR.title, AlertMessages.ERROR.NETWORK_ERROR.message, AlertConfigs.ERROR)
+      const errorTitle = isPermissionError(error) 
+        ? AlertMessages.ERROR.PERMISSION_DENIED.title 
+        : getErrorTitle(error);
+      const errorMessage = getErrorMessage(error);
+      showError(errorTitle, errorMessage, AlertConfigs.ERROR)
       // Reload to get latest data on error
       window.location.reload()
     } finally {
@@ -401,9 +406,13 @@ export default function ListPage({
         }
       } catch (error) {
         console.error('Error deleting product:', error)
+        const errorTitle = isPermissionError(error) 
+          ? AlertMessages.ERROR.PERMISSION_DENIED.title 
+          : getErrorTitle(error);
+        const errorMessage = getErrorMessage(error);
         showError(
-          AlertMessages.ERROR.NETWORK_ERROR.title,
-          AlertMessages.ERROR.NETWORK_ERROR.message,
+          errorTitle,
+          errorMessage,
           AlertConfigs.ERROR
         )
       }

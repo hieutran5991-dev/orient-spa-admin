@@ -7,6 +7,7 @@ export interface User {
   email: string;
   avatar?: string;
   role?: string;
+  permissions?: string[];
 }
 
 export interface AuthResponse {

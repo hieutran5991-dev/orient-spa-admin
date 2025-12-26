@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
+import { getErrorMessage, getErrorTitle } from './errorHandler';
 
 // Create axios instance
 const request: AxiosInstance = axios.create({
@@ -24,7 +25,7 @@ request.interceptors.request.use(
   }
 );
 
-// Response interceptor - xử lý lỗi authentication
+// Response interceptor - xử lý lỗi authentication và permission
 request.interceptors.response.use(
     (response: AxiosResponse) => {
         return response;
@@ -40,6 +41,9 @@ request.interceptors.response.use(
             }
           }
         }
+        
+        // Note: 403 errors are handled by individual components to avoid duplicate error messages
+        // Components should use errorHandler helpers to display appropriate error messages
         
         return Promise.reject(error);
       }

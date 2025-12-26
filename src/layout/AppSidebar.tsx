@@ -1,9 +1,10 @@
 "use client";
-import React, { useEffect, useRef, useState,useCallback } from "react";
+import React, { useEffect, useRef, useState,useCallback, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
+import { useAuth } from "../context/AuthContext";
 import {
   BoxCubeIcon,
   ChevronDownIcon,
@@ -14,6 +15,7 @@ import {
   TableIcon,
   UserCircleIcon,
 } from "../icons/index";
+import { MENU_PERMISSIONS, PERMISSIONS } from "../constants/permissions";
 
 type NavItem = {
   name: string;
@@ -29,17 +31,9 @@ const navItems: NavItem[] = [
     path: "/dashboard",
   },
   {
-    icon: <UserCircleIcon />,
-    name: "User",
-    subItems: [
-      { name: "Admins", path: "/user/admins", pro: false },
-      { name: "Staffs", path: "/user/staffs", pro: false },
-    ],
-  },
-  {
-    icon: <GroupIcon />,
-    name: "Agencies",
-    path: "/agencies",
+    icon: <PageIcon />,
+    name: "Bookings",
+    path: "/bookings",
   },
   {
     icon: <TableIcon />,
@@ -52,9 +46,14 @@ const navItems: NavItem[] = [
     path: "/products",
   },
   {
-    icon: <PageIcon />,
-    name: "Bookings",
-    path: "/bookings",
+    icon: <GroupIcon />,
+    name: "Agencies",
+    path: "/agencies",
+  },
+  {
+    icon: <UserCircleIcon />,
+    name: "Users",
+    path: "/users",
   },
   {
     icon: (             
@@ -87,6 +86,32 @@ const navItems: NavItem[] = [
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
+  const { user } = useAuth();
+
+  // Check if user has permission to view a menu item
+  const hasPermission = useCallback((path: string): boolean => {
+    if (!user) return false;
+    
+    // Admin has all permissions
+    if (user.role === 'admin') return true;
+    
+    // Check if path requires a permission
+    const requiredPermission = MENU_PERMISSIONS[path as keyof typeof MENU_PERMISSIONS];
+    if (!requiredPermission) return true; // If no permission required, allow access
+    
+    // Check if user has the required permission
+    // user.permissions is an array of permission slugs (string[])
+    const userPermissions = user.permissions || [];
+    return userPermissions.includes(requiredPermission);
+  }, [user]);
+
+  // Filter nav items based on permissions
+  const filteredNavItems = useMemo(() => {
+    return navItems.filter((item) => {
+      if (!item.path) return true; // Keep items without path (like submenus)
+      return hasPermission(item.path);
+    });
+  }, [hasPermission]);
 
   const renderMenuItems = (
     navItems: NavItem[],
@@ -206,7 +231,7 @@ const AppSidebar: React.FC = () => {
     // Check if the current path matches any submenu item
     let submenuMatched = false;
     ["main", "others"].forEach((menuType) => {
-      const items = menuType === "main" ? navItems : [];
+      const items = menuType === "main" ? filteredNavItems : [];
       items.forEach((nav, index) => {
         if (nav.subItems) {
           nav.subItems.forEach((subItem) => {
@@ -226,7 +251,7 @@ const AppSidebar: React.FC = () => {
     if (!submenuMatched) {
       setOpenSubmenu(null);
     }
-  }, [pathname,isActive]);
+  }, [pathname, isActive, filteredNavItems]);
 
   useEffect(() => {
     // Set the height of the submenu items when the submenu is opened
@@ -319,7 +344,7 @@ const AppSidebar: React.FC = () => {
                   <HorizontaLDots />
                 )}
               </h2>
-              {renderMenuItems(navItems, "main")}
+              {renderMenuItems(filteredNavItems, "main")}
             </div>
           </div>
         </nav>

@@ -18,6 +18,7 @@ import { updateBookingStatus } from "@/api/booking";
 import { useAlert } from "@/context/AlertContext";
 import { AlertMessages, AlertConfigs } from "@/lib/alertMessages";
 import { HTTP_CODES } from "@/constants/http-codes";
+import { getErrorMessage, getErrorTitle, isPermissionError } from "@/lib/errorHandler";
 import DatePicker from "../form/date-picker";
 import Select from "../form/Select";
 import { formatDateForDisplay } from "@/lib/datetime";
@@ -124,9 +125,13 @@ export default function ListPage({ bookings, pagination, isError, isLoading, onP
       }
     } catch (error) {
       console.error('Error updating booking status:', error);
+      const errorTitle = isPermissionError(error) 
+        ? AlertMessages.ERROR.PERMISSION_DENIED.title 
+        : getErrorTitle(error);
+      const errorMessage = getErrorMessage(error);
       showError(
-        AlertMessages.ERROR.NETWORK_ERROR.title,
-        AlertMessages.ERROR.NETWORK_ERROR.message,
+        errorTitle,
+        errorMessage,
         AlertConfigs.ERROR
       );
     }

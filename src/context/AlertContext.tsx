@@ -52,7 +52,7 @@ export const AlertProvider: React.FC<AlertProviderProps> = ({
 
   // Generate unique ID for alerts
   const generateId = useCallback(() => {
-    return `alert-${Date.now()}}`;
+    return `alert-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }, []);
 
     // Hide alert

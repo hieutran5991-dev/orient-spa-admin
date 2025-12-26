@@ -1,12 +1,32 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAlert } from '@/context/AlertContext';
 import Alert from '@/components/ui/alert/Alert';
+import { AlertConfigs } from '@/lib/alertMessages';
 
 // Alert container component to display all alerts
 const AlertContainer: React.FC = () => {
-  const { alerts, hideAlert } = useAlert();
+  const { alerts, hideAlert, showError } = useAlert();
+
+  // Listen for API errors from axios interceptor
+  useEffect(() => {
+    const handleApiError = (event: CustomEvent) => {
+      const { title, message, type } = event.detail;
+      if (type === 'error') {
+        showError(title, message, {
+          ...AlertConfigs.ERROR,
+          persistent: true, // Permission errors should be persistent
+        });
+      }
+    };
+
+    window.addEventListener('showApiError', handleApiError as EventListener);
+
+    return () => {
+      window.removeEventListener('showApiError', handleApiError as EventListener);
+    };
+  }, [showError]);
 
   if (alerts.length === 0) {
     return null;

@@ -9,6 +9,7 @@ import { validateProductForm, ProductFormData, ProductFormErrors } from '@/lib/v
 import { useAlert } from '@/context/AlertContext';
 import { AlertMessages, AlertConfigs } from '@/lib/alertMessages';
 import { HTTP_CODES } from '@/constants/http-codes';
+import { getErrorMessage, getErrorTitle, isPermissionError } from '@/lib/errorHandler';
 import { CategoryOption } from '@/types/category';
 import { MultiLanguageInput } from '../form/MultiLanguageInput';
 import { MultiLanguageTextarea } from '../form/MultiLanguageTextarea';
@@ -157,9 +158,13 @@ export default function CreateProductForm({ categories }: { categories: Category
       }
     } catch (error) {
       console.error('Error creating product:', error);
+      const errorTitle = isPermissionError(error) 
+        ? AlertMessages.ERROR.PERMISSION_DENIED.title 
+        : getErrorTitle(error);
+      const errorMessage = getErrorMessage(error);
       showError(
-        AlertMessages.ERROR.NETWORK_ERROR.title,
-        AlertMessages.ERROR.NETWORK_ERROR.message,
+        errorTitle,
+        errorMessage,
         AlertConfigs.ERROR
       );
     } finally {

@@ -15,6 +15,7 @@ import { MultiLanguageInput } from '../form/MultiLanguageInput';
 import { MultiLanguageTextarea } from '../form/MultiLanguageTextarea';
 import { MultiLanguageValue } from '@/types/language';
 import { useLanguage } from '@/context/LanguageContext';
+import { getErrorMessage, getErrorTitle, isPermissionError } from '@/lib/errorHandler';
 
 export default function EditCategoryForm() {
   const router = useRouter();
@@ -70,9 +71,13 @@ export default function EditCategoryForm() {
       } catch (error) {
         console.error('Error fetching category:', error);
         setLoadError('Failed to load category data');
+        const errorTitle = isPermissionError(error) 
+          ? AlertMessages.ERROR.PERMISSION_DENIED.title 
+          : getErrorTitle(error);
+        const errorMessage = getErrorMessage(error);
         showError(
-          AlertMessages.ERROR.LOAD_ERROR.title,
-          AlertMessages.ERROR.LOAD_ERROR.message,
+          errorTitle,
+          errorMessage,
           AlertConfigs.ERROR
         );
       } finally {
@@ -140,9 +145,13 @@ export default function EditCategoryForm() {
       }
     } catch (error) {
       console.error('Error updating category:', error);
+      const errorTitle = isPermissionError(error) 
+        ? AlertMessages.ERROR.PERMISSION_DENIED.title 
+        : getErrorTitle(error);
+      const errorMessage = getErrorMessage(error);
       showError(
-        AlertMessages.ERROR.NETWORK_ERROR.title,
-        AlertMessages.ERROR.NETWORK_ERROR.message,
+        errorTitle,
+        errorMessage,
         AlertConfigs.ERROR
       );
     } finally {

@@ -1,18 +1,18 @@
-import Link from 'next/link';
+import { Metadata } from 'next';
+import UsersClient from './UsersClient';
+
+export const dynamic = 'force-dynamic'
+export const metadata: Metadata = {
+  title: "Users Management | SPA Admin Dashboard",
+  description: "Manage users, roles, and permissions. View and update user information, roles, and access permissions.",
+  keywords: "user management, admin, staff, permissions, roles",
+  openGraph: {
+    title: "Users Management | SPA Admin Dashboard",
+    description: "Manage users, roles, and permissions.",
+    type: "website",
+  },
+};
 
 export default function UsersPage() {
-  return (
-    <div>
-      <h1>Users Management</h1>
-      <div className="mt-4 space-y-2">
-        <Link 
-          href="/users/admin" 
-          className="block p-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100"
-        >
-          Manage Admins
-        </Link>
-        {/* Other user management links can be added here */}
-      </div>
-    </div>
-  );
+  return <UsersClient />;
 }

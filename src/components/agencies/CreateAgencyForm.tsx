@@ -13,6 +13,7 @@ import { validateAgencyForm, AgencyFormData, AgencyFormErrors } from '@/lib/vali
 import { useAlert } from '@/context/AlertContext';
 import { AlertMessages, AlertConfigs } from '@/lib/alertMessages';
 import { HTTP_CODES } from '@/constants/http-codes';
+import { getErrorMessage, getErrorTitle, isPermissionError } from '@/lib/errorHandler';
 import { AgencyLanguages } from '@/types/agency';
 import { useLanguage } from '@/context/LanguageContext';
 import { MultiLanguageValue } from '@/types/language';
@@ -110,9 +111,13 @@ export default function CreateAgencyForm() {
       }
     } catch (error) {
       console.error('Error creating agency:', error);
+      const errorTitle = isPermissionError(error) 
+        ? AlertMessages.ERROR.PERMISSION_DENIED.title 
+        : getErrorTitle(error);
+      const errorMessage = getErrorMessage(error);
       showError(
-        AlertMessages.ERROR.NETWORK_ERROR.title,
-        AlertMessages.ERROR.NETWORK_ERROR.message,
+        errorTitle,
+        errorMessage,
         AlertConfigs.ERROR
       );
     } finally {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { getReport, ReportParams } from '@/api/report';
 import { ReportData } from '@/types/report';
 import SummaryStats from '@/components/dashboard/SummaryStats';
@@ -11,11 +11,17 @@ import BookingsByDate from '@/components/dashboard/BookingsByDate';
 import BookingsByMonth from '@/components/dashboard/BookingsByMonth';
 import DatePicker from '@/components/form/date-picker';
 import { formatDateForDisplay, formatDateToAPI } from '@/lib/datetime';
+import { useAlert } from '@/context/AlertContext';
+import { AlertMessages, AlertConfigs } from '@/lib/alertMessages';
+import { getErrorMessage, getErrorTitle, isPermissionError } from '@/lib/errorHandler';
 
 export default function DashboardClient() {
+  const { showError } = useAlert();
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isError, setIsError] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>('Failed to load dashboard data. Please try again later.');
+  const hasShownErrorRef = useRef<boolean>(false);
   const [dateRange, setDateRange] = useState<{
     startDate: Date | null;
     endDate: Date | null;
@@ -40,12 +46,31 @@ export default function DashboardClient() {
       const response = await getReport(params);
       if (response.data?.data) {
         setReportData(response.data.data);
+        setIsError(false);
+        hasShownErrorRef.current = false; // Reset error flag on success
       } else {
         setIsError(true);
+        setErrorMessage('Failed to load dashboard data. Please try again later.');
       }
     } catch (error) {
       console.error('Error fetching report:', error);
       setIsError(true);
+      
+      const errorTitle = isPermissionError(error) 
+        ? AlertMessages.ERROR.PERMISSION_DENIED.title 
+        : getErrorTitle(error);
+      const errorMsg = getErrorMessage(error);
+      setErrorMessage(errorMsg);
+      
+      // Only show alert for permission errors and only once per error type
+      if (isPermissionError(error) && !hasShownErrorRef.current) {
+        hasShownErrorRef.current = true;
+        showError(
+          errorTitle,
+          errorMsg,
+          AlertConfigs.ERROR
+        );
+      }
     } finally {
       setIsLoading(false);
     }
@@ -261,7 +286,7 @@ export default function DashboardClient() {
             </div>
             <button
               onClick={clearFilters}
-              className="px-4 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors whitespace-nowrap"
+              className="h-11 px-4 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors whitespace-nowrap flex items-center"
             >
               Clear Filters
             </button>
@@ -274,8 +299,11 @@ export default function DashboardClient() {
           <div className="text-gray-500 dark:text-gray-400">Loading dashboard data...</div>
         </div>
       ) : isError ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="text-red-500 dark:text-red-400">Failed to load dashboard data. Please try again later.</div>
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="text-red-500 dark:text-red-400 text-center max-w-md">
+            <p className="font-semibold mb-2">Không thể tải dữ liệu dashboard</p>
+            <p className="text-sm">{errorMessage}</p>
+          </div>
         </div>
       ) : reportData ? (
         <>
