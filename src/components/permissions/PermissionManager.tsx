@@ -17,14 +17,9 @@ interface PermissionManagerProps {
 export default function PermissionManager({ user, onClose }: PermissionManagerProps) {
   const { showSuccess, showError } = useAlert();
   const [allPermissions, setAllPermissions] = useState<Permission[]>([]);
-  const [userPermissions, setUserPermissions] = useState<Permission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [selectedPermissionIds, setSelectedPermissionIds] = useState<number[]>([]);
-
-  useEffect(() => {
-    fetchData();
-  }, [user.id]);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -40,7 +35,6 @@ export default function PermissionManager({ user, onClose }: PermissionManagerPr
 
       if (userPermsResponse.data?.data) {
         const userPerms = userPermsResponse.data.data;
-        setUserPermissions(userPerms);
         setSelectedPermissionIds(userPerms.map(p => p.id));
       }
     } catch (error) {
@@ -58,6 +52,11 @@ export default function PermissionManager({ user, onClose }: PermissionManagerPr
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user.id]);
 
   const handlePermissionToggle = (permissionId: number) => {
     setSelectedPermissionIds(prev => {

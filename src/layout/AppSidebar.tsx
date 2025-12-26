@@ -15,7 +15,7 @@ import {
   TableIcon,
   UserCircleIcon,
 } from "../icons/index";
-import { MENU_PERMISSIONS, PERMISSIONS } from "../constants/permissions";
+import { MENU_PERMISSIONS } from "../constants/permissions";
 
 type NavItem = {
   name: string;

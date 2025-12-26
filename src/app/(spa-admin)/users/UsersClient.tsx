@@ -6,7 +6,7 @@ import { getUsers } from '@/api/user';
 import { User } from '@/types/user';
 import { useAlert } from '@/context/AlertContext';
 import { AlertMessages, AlertConfigs } from '@/lib/alertMessages';
-import { getErrorMessage, getErrorTitle, isPermissionError } from '@/lib/errorHandler';
+import { getErrorMessage, isPermissionError } from '@/lib/errorHandler';
 
 export default function UsersClient() {
   const { showError } = useAlert();

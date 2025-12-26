@@ -1,5 +1,4 @@
 import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
-import { getErrorMessage, getErrorTitle } from './errorHandler';
 
 // Create axios instance
 const request: AxiosInstance = axios.create({

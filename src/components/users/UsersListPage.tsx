@@ -29,10 +29,11 @@ export default function UsersListPage({ users, isError, isLoading, onRefresh }: 
       sortable: true,
       width: '20%',
       render: (value: unknown, row: Record<string, unknown>) => {
-        const user = row as User;
+        const user = row as unknown as User;
         return (
           <div className="flex items-center space-x-3">
             {user.avatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={user.avatar}
                 alt={user.name}
@@ -62,7 +63,7 @@ export default function UsersListPage({ users, isError, isLoading, onRefresh }: 
       sortable: true,
       width: '10%',
       render: (value: unknown, row: Record<string, unknown>) => {
-        const user = row as User;
+        const user = row as unknown as User;
         const isUpdating = updatingUserId === user.id;
         return (
           <select
@@ -87,7 +88,7 @@ export default function UsersListPage({ users, isError, isLoading, onRefresh }: 
       sortable: true,
       width: '10%',
       render: (value: unknown, row: Record<string, unknown>) => {
-        const user = row as User;
+        const user = row as unknown as User;
         const isUpdating = updatingUserId === user.id;
         return (
           <label className="relative inline-flex items-center cursor-pointer">
@@ -112,7 +113,7 @@ export default function UsersListPage({ users, isError, isLoading, onRefresh }: 
       sortable: false,
       width: '20%',
       render: (value: unknown, row: Record<string, unknown>) => {
-        const user = row as User;
+        const user = row as unknown as User;
         const permissionCount = user.permissions?.length || 0;
         return (
           <span className="text-sm text-gray-600 dark:text-gray-400">
@@ -131,7 +132,7 @@ export default function UsersListPage({ users, isError, isLoading, onRefresh }: 
       sortable: false,
       width: '20%',
       render: (value: unknown, row: Record<string, unknown>) => {
-        const user = row as User;
+        const user = row as unknown as User;
         return (
           <div className="flex items-center space-x-2">
             <button

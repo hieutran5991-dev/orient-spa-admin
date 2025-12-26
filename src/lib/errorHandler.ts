@@ -45,7 +45,7 @@ export const getErrorMessage = (error: unknown): string => {
  * Get error title based on status code
  */
 export const getErrorTitle = (error: unknown): string => {
-  if ('response' in error) {
+  if (error instanceof Error && 'response' in error) {
     const axiosError = error as AxiosError;
     if (axiosError.response?.status === 403) {
       return AlertMessages.ERROR.PERMISSION_DENIED.title;
@@ -67,7 +67,7 @@ export const getErrorTitle = (error: unknown): string => {
  * Check if error is a permission error (403)
  */
 export const isPermissionError = (error: unknown): boolean => {
-  if ('response' in error) {
+  if (error instanceof Error && 'response' in error) {
     const axiosError = error as AxiosError;
     return axiosError.response?.status === 403;
   }
@@ -78,7 +78,7 @@ export const isPermissionError = (error: unknown): boolean => {
  * Check if error is an authentication error (401)
  */
 export const isAuthenticationError = (error: unknown): boolean => {
-  if ('response' in error) {
+  if (error instanceof Error && 'response' in error) {
     const axiosError = error as AxiosError;
     return axiosError.response?.status === 401;
   }
