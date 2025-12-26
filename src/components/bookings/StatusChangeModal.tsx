@@ -260,14 +260,16 @@ const StatusChangeModal: React.FC<StatusChangeModalProps> = ({
               {booking.booking_details && Object.keys(booking.booking_details).length > 0 ? (
                 <div className="space-y-4">
                   {/* Group services by guest */}
-                  {Object.entries(booking.booking_details).map(([guestKey, guestServices], index) => 
+                  {Object.entries(booking.booking_details)
+                    .filter(([, guestServices]) => guestServices && Array.isArray(guestServices))
+                    .map(([guestKey, guestServices], index) => 
                      (
                       <div key={guestKey}>
                         <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
                           Guest {index + 1}:
                         </h4>
                         <div className="space-y-1 mb-3">
-                          {guestServices.map((service, serviceIndex) => (
+                          {guestServices!.map((service, serviceIndex) => (
                             <div key={`${guestKey}-${serviceIndex}`} className="flex justify-between items-center text-sm">
                               <span className="text-gray-700 dark:text-gray-300">
                                 {service.name}

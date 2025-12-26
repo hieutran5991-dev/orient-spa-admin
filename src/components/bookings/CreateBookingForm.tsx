@@ -180,7 +180,7 @@ export default function CreateBookingForm({
       };
 
       await createBooking(bookingData);
-      showSuccess('Booking created successfully!');
+      showSuccess('Success', 'Booking created successfully!');
       
       // Reset form
       setFormData({
@@ -200,10 +200,10 @@ export default function CreateBookingForm({
       
       onSuccess();
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating booking:', error);
-      const errorMessage = error.response?.data?.message || 'Failed to create booking. Please try again.';
-      showError(errorMessage);
+      const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to create booking. Please try again.';
+      showError('Error', errorMessage);
     } finally {
       setIsSubmitting(false);
     }

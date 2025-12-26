@@ -34,6 +34,7 @@ export default function BookingsClient() {
 
   useEffect(() => {
     fetchBookings(currentPage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 
   const handlePageChange = (page: number) => {

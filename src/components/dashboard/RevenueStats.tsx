@@ -1,7 +1,7 @@
 'use client';
 
 import ComponentCard from '../common/ComponentCard';
-import { RevenueStats } from '@/types/report';
+import type { RevenueStats } from '@/types/report';
 import { formatPriceWithCurrency } from '@/lib/currency';
 
 interface RevenueStatsProps {

@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import ComponentCard from '../common/ComponentCard';
-import { BookingsByStatus } from '@/types/report';
+import type { BookingsByStatus } from '@/types/report';
 import { useTheme } from '@/context/ThemeContext';
 
 // Dynamically import ApexCharts to avoid SSR issues
@@ -21,17 +21,7 @@ export default function BookingsByStatus({ bookingsByStatus }: BookingsByStatusP
     setIsMounted(true);
   }, []);
 
-  const total = bookingsByStatus.booked + bookingsByStatus.done + bookingsByStatus.cancelled;
-
-  if (total === 0) {
-    return (
-      <ComponentCard title="Bookings by Status">
-        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-          No bookings data available
-        </div>
-      </ComponentCard>
-    );
-  }
+  const total = useMemo(() => bookingsByStatus.booked + bookingsByStatus.done + bookingsByStatus.cancelled, [bookingsByStatus]);
 
   const isDark = theme === 'dark';
   const textColor = isDark ? '#9CA3AF' : '#6B7280';
@@ -136,11 +126,21 @@ export default function BookingsByStatus({ bookingsByStatus }: BookingsByStatusP
     },
   }), [total, theme, textColor, isDark]);
 
-  const chartSeries = [
+  const chartSeries = useMemo(() => [
     bookingsByStatus.booked,
     bookingsByStatus.done,
     bookingsByStatus.cancelled,
-  ];
+  ], [bookingsByStatus]);
+
+  if (total === 0) {
+    return (
+      <ComponentCard title="Bookings by Status">
+        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          No bookings data available
+        </div>
+      </ComponentCard>
+    );
+  }
 
   return (
     <ComponentCard title="Bookings by Status">

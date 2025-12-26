@@ -35,6 +35,7 @@ export default function CategoriesClient() {
 
   useEffect(() => {
     fetchCategories(currentPage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 
   const handlePageChange = (page: number) => {

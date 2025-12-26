@@ -22,27 +22,17 @@ export default function BookingsByMonth({ bookingsByMonth }: BookingsByMonthProp
     setIsMounted(true);
   }, []);
 
-  if (!bookingsByMonth || bookingsByMonth.length === 0) {
-    return (
-      <ComponentCard title="Bookings by Month">
-        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-          No monthly bookings data available
-        </div>
-      </ComponentCard>
-    );
-  }
-
   // Prepare data for chart
-  const months = bookingsByMonth.map((item) => {
+  const months = useMemo(() => bookingsByMonth.map((item) => {
     // Format month from "2025-11" to "Nov 2025"
     const [year, month] = item.month.split('-');
     const date = new Date(parseInt(year), parseInt(month) - 1, 1);
     return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-  });
+  }), [bookingsByMonth]);
 
-  const bookingsCount = bookingsByMonth.map((item) => item.count);
-  const revenueVnd = bookingsByMonth.map((item) => item.revenue_vnd);
-  const revenueUsd = bookingsByMonth.map((item) => item.revenue_usd);
+  const bookingsCount = useMemo(() => bookingsByMonth.map((item) => item.count), [bookingsByMonth]);
+  const revenueVnd = useMemo(() => bookingsByMonth.map((item) => item.revenue_vnd), [bookingsByMonth]);
+  const revenueUsd = useMemo(() => bookingsByMonth.map((item) => item.revenue_usd), [bookingsByMonth]);
 
   const isDark = theme === 'dark';
   const textColor = isDark ? '#9CA3AF' : '#6B7280';
@@ -144,7 +134,7 @@ export default function BookingsByMonth({ bookingsByMonth }: BookingsByMonthProp
       shared: true,
       intersect: false,
       theme: isDark ? 'dark' : 'light',
-      custom: ({ series, seriesIndex, dataPointIndex }: any) => {
+      custom: ({ series, dataPointIndex }: { series: number[][]; dataPointIndex: number }) => {
         const bookings = series[0][dataPointIndex];
         const revenueVndValue = series[1][dataPointIndex];
         const revenueUsdValue = revenueUsd[dataPointIndex];
@@ -172,9 +162,8 @@ export default function BookingsByMonth({ bookingsByMonth }: BookingsByMonthProp
         colors: textColor,
       },
       markers: {
-        width: 12,
-        height: 12,
-        radius: 12,
+        size: 6,
+        strokeWidth: 0,
       },
       itemMargin: {
         horizontal: 15,
@@ -190,7 +179,7 @@ export default function BookingsByMonth({ bookingsByMonth }: BookingsByMonthProp
     },
   }), [months, revenueUsd, theme, textColor, gridColor, isDark]);
 
-  const chartSeries = [
+  const chartSeries = useMemo(() => [
     {
       name: 'Bookings',
       data: bookingsCount,
@@ -199,7 +188,17 @@ export default function BookingsByMonth({ bookingsByMonth }: BookingsByMonthProp
       name: 'Revenue (VND)',
       data: revenueVnd,
     },
-  ];
+  ], [bookingsCount, revenueVnd]);
+
+  if (!bookingsByMonth || bookingsByMonth.length === 0) {
+    return (
+      <ComponentCard title="Bookings by Month">
+        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          No monthly bookings data available
+        </div>
+      </ComponentCard>
+    );
+  }
 
   return (
     <ComponentCard title="Bookings by Month">

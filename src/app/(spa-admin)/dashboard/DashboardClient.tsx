@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { getReport, ReportParams } from '@/api/report';
 import { ReportData } from '@/types/report';
-import ComponentCard from '@/components/common/ComponentCard';
 import SummaryStats from '@/components/dashboard/SummaryStats';
 import RevenueStats from '@/components/dashboard/RevenueStats';
 import TopProducts from '@/components/dashboard/TopProducts';

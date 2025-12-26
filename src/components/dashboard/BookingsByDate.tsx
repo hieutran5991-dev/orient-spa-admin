@@ -22,25 +22,15 @@ export default function BookingsByDate({ bookingsByDate }: BookingsByDateProps) 
     setIsMounted(true);
   }, []);
 
-  if (bookingsByDate.length === 0) {
-    return (
-      <ComponentCard title="Bookings by Date">
-        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-          No bookings data available
-        </div>
-      </ComponentCard>
-    );
-  }
-
   // Prepare data for chart
-  const dates = bookingsByDate.map((item) => {
+  const dates = useMemo(() => bookingsByDate.map((item) => {
     const date = new Date(item.date);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  });
+  }), [bookingsByDate]);
 
-  const bookingsCount = bookingsByDate.map((item) => item.count);
-  const revenueVnd = bookingsByDate.map((item) => item.revenue_vnd);
-  const revenueUsd = bookingsByDate.map((item) => item.revenue_usd);
+  const bookingsCount = useMemo(() => bookingsByDate.map((item) => item.count), [bookingsByDate]);
+  const revenueVnd = useMemo(() => bookingsByDate.map((item) => item.revenue_vnd), [bookingsByDate]);
+  const revenueUsd = useMemo(() => bookingsByDate.map((item) => item.revenue_usd), [bookingsByDate]);
 
   const isDark = theme === 'dark';
   const textColor = isDark ? '#9CA3AF' : '#6B7280';
@@ -148,7 +138,7 @@ export default function BookingsByDate({ bookingsByDate }: BookingsByDateProps) 
       shared: true,
       intersect: false,
       theme: isDark ? 'dark' : 'light',
-      custom: ({ series, dataPointIndex }: any) => {
+      custom: ({ series, dataPointIndex }: { series: number[][]; dataPointIndex: number }) => {
         if (dataPointIndex === undefined || dataPointIndex === null || dataPointIndex < 0) {
           return '';
         }
@@ -180,18 +170,28 @@ export default function BookingsByDate({ bookingsByDate }: BookingsByDateProps) 
     },
   }), [dates, revenueUsd, theme, textColor, gridColor, isDark]);
 
-  const chartSeries = [
+  const chartSeries = useMemo(() => [
     {
       name: 'Bookings',
-      type: 'line',
+      type: 'line' as const,
       data: bookingsCount,
     },
     {
       name: 'Revenue (VND)',
-      type: 'line',
+      type: 'line' as const,
       data: revenueVnd,
     },
-  ];
+  ], [bookingsCount, revenueVnd]);
+
+  if (bookingsByDate.length === 0) {
+    return (
+      <ComponentCard title="Bookings by Date">
+        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          No bookings data available
+        </div>
+      </ComponentCard>
+    );
+  }
 
   return (
     <ComponentCard title="Bookings by Date">

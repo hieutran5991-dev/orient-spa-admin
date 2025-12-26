@@ -188,9 +188,9 @@ export default function CreateBookingPageForm() {
       await createBooking(bookingData);
       showSuccess('Success', 'Booking created successfully!');
       router.push('/bookings');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating booking:', error);
-      const errorMessage = error.response?.data?.message || 'Failed to create booking. Please try again.';
+      const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to create booking. Please try again.';
       showError('Error', errorMessage);
     } finally {
       setIsSubmitting(false);
