@@ -8,6 +8,7 @@ import { createBooking } from '@/api/booking';
 import { getProducts } from '@/api/product';
 import { CreateBookingRequest } from '@/types/booking';
 import { useAlert } from '@/context/AlertContext';
+import { useAuth } from '@/context/AuthContext';
 import InputField from '../form/input/InputField';
 import DatePicker from '../form/date-picker';
 import TimePicker from '../form/time-picker';
@@ -48,6 +49,7 @@ interface BookingFormErrors {
 export default function CreateBookingPageForm() {
   const router = useRouter();
   const { showSuccess, showError } = useAlert();
+  const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [formData, setFormData] = useState<BookingFormData>({
@@ -183,6 +185,7 @@ export default function CreateBookingPageForm() {
         ...(formData.app_type && { social_app: formData.app_type }),
         ...(formData.social_account_id.trim() && { social_account_id: formData.social_account_id.trim() }),
         ...(formData.note.trim() && { note: formData.note.trim() }),
+        ...(user?.id && { user_id: user.id }),
       };
 
       await createBooking(bookingData);

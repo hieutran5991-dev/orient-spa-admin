@@ -68,6 +68,7 @@ export interface CreateBookingRequest {
   social_app?: string;
   social_account_id?: string;
   note?: string;
+  user_id?: number;
 }
 
 export interface UpdateBookingRequest extends Partial<CreateBookingRequest> {

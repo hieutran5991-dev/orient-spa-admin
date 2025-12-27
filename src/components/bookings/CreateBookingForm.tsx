@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { createBooking } from '@/api/booking';
 import { CreateBookingRequest } from '@/types/booking';
 import { useAlert } from '@/context/AlertContext';
+import { useAuth } from '@/context/AuthContext';
 import InputField from '../form/input/InputField';
 import Select from '../form/Select';
 import DatePicker from '../form/date-picker';
@@ -55,6 +56,7 @@ export default function CreateBookingForm({
   agencies,
 }: CreateBookingFormProps) {
   const { showSuccess, showError } = useAlert();
+  const { user } = useAuth();
   const [formData, setFormData] = useState<BookingFormData>({
     agency_id: '',
     booking_date: null,
@@ -177,6 +179,7 @@ export default function CreateBookingForm({
         phone: formData.phone.trim(),
         ...(formData.social_account_id.trim() && { social_account_id: formData.social_account_id.trim() }),
         ...(formData.note.trim() && { note: formData.note.trim() }),
+        ...(user?.id && { user_id: user.id }),
       };
 
       await createBooking(bookingData);
