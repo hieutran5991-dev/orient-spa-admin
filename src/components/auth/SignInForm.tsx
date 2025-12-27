@@ -19,7 +19,7 @@ export default function SignInForm() {
         // Only redirect to dashboard if login was successful and not redirected to pending page
         // (AuthContext will handle redirect to /account-pending if account is inactive)
         if (typeof window !== 'undefined' && !window.location.pathname.includes('account-pending')) {
-          router.push('/');
+        router.push('/');
         }
       }
     } catch (error: unknown) {

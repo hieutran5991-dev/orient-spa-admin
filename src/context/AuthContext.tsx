@@ -111,9 +111,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (typeof window !== "undefined") {
             const currentPath = window.location.pathname;
             if (currentPath !== "/signin" && !currentPath.includes('account-pending')) {
-              authService.removeToken();
-              setUser(null);
-              window.location.href = "/signin";
+          authService.removeToken();
+          setUser(null);
+            window.location.href = "/signin";
             }
           }
         }

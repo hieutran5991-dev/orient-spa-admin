@@ -189,77 +189,77 @@ export default function DashboardClient() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header with Title and Date Filter */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 md:gap-4">
+        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
           Dashboard
         </h1>
         
         {/* Compact Date Range Filter */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2 md:gap-3">
           {/* Quick Select Buttons */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5 md:gap-2 overflow-x-auto pb-1 -mx-1 px-1 md:mx-0 md:px-0">
             <button
               onClick={() => setQuickDateRange('today')}
-              className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors"
+              className="px-2 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md md:rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors whitespace-nowrap"
             >
               Today
             </button>
             <button
               onClick={() => setQuickDateRange('yesterday')}
-              className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors"
+              className="px-2 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md md:rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors whitespace-nowrap"
             >
               Yesterday
             </button>
             <button
               onClick={() => setQuickDateRange('last7days')}
-              className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors"
+              className="px-2 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md md:rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors whitespace-nowrap"
             >
-              Last 7 Days
+              7 Days
             </button>
             <button
               onClick={() => setQuickDateRange('thisWeek')}
-              className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors"
+              className="px-2 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md md:rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors whitespace-nowrap"
             >
               This Week
             </button>
             <button
               onClick={() => setQuickDateRange('lastWeek')}
-              className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors"
+              className="px-2 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md md:rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors whitespace-nowrap"
             >
               Last Week
             </button>
             <button
               onClick={() => setQuickDateRange('thisMonth')}
-              className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors"
+              className="px-2 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md md:rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors whitespace-nowrap"
             >
               This Month
             </button>
             <button
               onClick={() => setQuickDateRange('lastMonth')}
-              className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors"
+              className="px-2 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md md:rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors whitespace-nowrap"
             >
               Last Month
             </button>
             <button
               onClick={() => setQuickDateRange('last30days')}
-              className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors"
+              className="px-2 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md md:rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors whitespace-nowrap"
             >
-              Last 30 Days
+              30 Days
             </button>
             <button
               onClick={() => setQuickDateRange('thisYear')}
-              className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors"
+              className="px-2 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md md:rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors whitespace-nowrap"
             >
               This Year
             </button>
           </div>
           
           {/* Custom Date Range */}
-          <div className="flex flex-wrap gap-2 items-end">
-            <div className="flex-1 min-w-[140px]">
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-2 items-end">
+            <div className="flex-1 w-full sm:min-w-[140px]">
+              <label className="block text-[10px] md:text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                 From Date
               </label>
               <DatePicker
@@ -271,8 +271,8 @@ export default function DashboardClient() {
                 onChange={(selectedDates) => handleDateRangeChange('startDate', selectedDates)}
               />
             </div>
-            <div className="flex-1 min-w-[140px]">
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+            <div className="flex-1 w-full sm:min-w-[140px]">
+              <label className="block text-[10px] md:text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                 To Date
               </label>
               <DatePicker
@@ -286,7 +286,7 @@ export default function DashboardClient() {
             </div>
             <button
               onClick={clearFilters}
-              className="h-11 px-4 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors whitespace-nowrap flex items-center"
+              className="h-10 md:h-11 px-3 md:px-4 text-[10px] md:text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md md:rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors whitespace-nowrap flex items-center w-full sm:w-auto"
             >
               Clear Filters
             </button>
@@ -314,18 +314,18 @@ export default function DashboardClient() {
           <SummaryStats summary={reportData.summary} bookingsByStatus={reportData.bookings_by_status} />
 
           {/* Top Products and Top Categories */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
             <TopProducts products={reportData.top_products} />
             <TopCategories categories={reportData.top_categories} />
           </div>
+
+          {/* Bookings by Date */}
+          <BookingsByDate bookingsByDate={reportData.bookings_by_date} />
 
           {/* Bookings by Month */}
           {reportData.bookings_by_month && reportData.bookings_by_month.length > 0 && (
             <BookingsByMonth bookingsByMonth={reportData.bookings_by_month} />
           )}
-
-          {/* Bookings by Date */}
-          <BookingsByDate bookingsByDate={reportData.bookings_by_date} />
         </>
       ) : null}
     </div>

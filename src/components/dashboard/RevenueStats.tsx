@@ -54,26 +54,26 @@ export default function RevenueStats({ revenue }: RevenueStatsProps) {
 
   return (
     <ComponentCard title="Revenue Statistics" className="border-2 border-indigo-200 dark:border-indigo-800 shadow-lg">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
         {revenueItems.map((item) => (
           <div
             key={item.label}
-            className={`p-6 rounded-xl border-2 ${item.bgColor} ${item.borderColor} hover:shadow-xl hover:scale-105 transition-all duration-300 relative overflow-hidden group`}
+            className={`p-4 md:p-6 rounded-lg md:rounded-xl border-2 ${item.bgColor} ${item.borderColor} hover:shadow-xl hover:scale-105 transition-all duration-300 relative overflow-hidden group`}
           >
-            <div className="flex items-center justify-between mb-4">
-              <p className={`text-sm font-bold uppercase tracking-wide ${item.textColor}`}>
+            <div className="flex items-center justify-between mb-2 md:mb-4">
+              <p className={`text-[10px] md:text-xs lg:text-sm font-bold uppercase tracking-wide ${item.textColor}`}>
                 {item.label}
               </p>
-              <span className="text-3xl group-hover:scale-110 transition-transform duration-300">{item.icon}</span>
+              <span className="text-xl md:text-2xl lg:text-3xl group-hover:scale-110 transition-transform duration-300">{item.icon}</span>
             </div>
-            <p className="text-2xl font-extrabold text-gray-900 dark:text-white mb-2">
+            <p className="text-lg md:text-xl lg:text-2xl font-extrabold text-gray-900 dark:text-white mb-1 md:mb-2">
               {formatPriceWithCurrency(item.vnd, 'VND')}
             </p>
-            <p className={`text-sm font-semibold ${item.textColor} opacity-90`}>
+            <p className={`text-[10px] md:text-xs lg:text-sm font-semibold ${item.textColor} opacity-90`}>
               {formatPriceWithCurrency(item.usd, 'USD')}
             </p>
-            <div className={`absolute bottom-0 right-0 w-24 h-24 bg-gradient-to-br ${item.bgGradient} opacity-15 rounded-full -mr-12 -mb-12 group-hover:opacity-20 transition-opacity duration-300`}></div>
-            <div className={`absolute top-0 left-0 w-16 h-16 bg-gradient-to-br ${item.bgGradient} opacity-5 rounded-full -ml-8 -mt-8`}></div>
+            <div className={`absolute bottom-0 right-0 w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 bg-gradient-to-br ${item.bgGradient} opacity-15 rounded-full -mr-8 -mb-8 md:-mr-10 md:-mb-10 lg:-mr-12 lg:-mb-12 group-hover:opacity-20 transition-opacity duration-300`}></div>
+            <div className={`absolute top-0 left-0 w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 bg-gradient-to-br ${item.bgGradient} opacity-5 rounded-full -ml-6 -mt-6 md:-ml-7 md:-mt-7 lg:-ml-8 lg:-mt-8`}></div>
           </div>
         ))}
       </div>

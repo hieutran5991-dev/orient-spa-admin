@@ -89,7 +89,7 @@ export default function PhoneInputWithPrefix({
           <button
             type="button"
             onClick={() => setIsPrefixOpen(!isPrefixOpen)}
-            className="h-11 px-4 py-2.5 text-sm rounded-lg border border-gray-300 bg-white dark:bg-gray-900 dark:border-gray-700 text-gray-800 dark:text-white/90 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:focus:border-brand-800 flex items-center gap-2 min-w-[140px]"
+            className="h-11 px-2 py-2.5 text-sm rounded-lg border border-gray-300 bg-white dark:bg-gray-900 dark:border-gray-700 text-gray-800 dark:text-white/90 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:focus:border-brand-800 flex items-center gap-1 w-[85px]"
           >
             <span>{selectedCountry?.dial || prefix}</span>
             <ChevronDownIcon className="size-4" />
