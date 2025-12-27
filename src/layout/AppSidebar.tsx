@@ -28,7 +28,7 @@ const navItems: NavItem[] = [
   {
     icon: <PieChartIcon />,
     name: "Dashboard",
-    path: "/dashboard",
+    path: "/",
   },
   {
     icon: <PageIcon />,

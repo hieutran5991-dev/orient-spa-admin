@@ -47,7 +47,7 @@ export type Permission = typeof PERMISSIONS[keyof typeof PERMISSIONS];
 
 // Menu item permission mapping
 export const MENU_PERMISSIONS = {
-  '/dashboard': PERMISSIONS.REPORT_VIEW,
+  '/': PERMISSIONS.REPORT_VIEW,
   '/users': PERMISSIONS.USER_VIEW,
   '/agencies': PERMISSIONS.AGENCY_VIEW,
   '/categories': PERMISSIONS.CATEGORY_VIEW,
