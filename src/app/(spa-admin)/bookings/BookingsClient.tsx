@@ -57,6 +57,10 @@ export default function BookingsClient() {
     setCurrentPage(page);
   };
 
+  const handleRefresh = () => {
+    fetchBookings(currentPage);
+  };
+
   return (
     <ListPage 
       bookings={bookings} 
@@ -64,6 +68,7 @@ export default function BookingsClient() {
       isError={isError}
       isLoading={isLoading}
       onPageChange={handlePageChange}
+      onRefresh={handleRefresh}
     />
   );
 }

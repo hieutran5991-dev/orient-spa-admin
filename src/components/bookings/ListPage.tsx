@@ -5,15 +5,15 @@ import ComponentCard from "../common/ComponentCard";
 import DataTable, { Column } from "../tables/DataTable";
 import { Booking } from "@/types/booking";
 import { InfoIcon } from "@/icons";
+import { useRouter } from "next/navigation";
 import { 
-  getBookingStatusConfig, 
   isBookingExpired, 
   shouldShowExpired, 
   EXPIRED_STATUS_CONFIG,
   BookingStatus,
-  BOOKING_STATUS_OPTIONS
+  BOOKING_STATUS_OPTIONS,
+  BOOKING_STATUS
 } from "@/constants/booking-status";
-import StatusChangeModal from "./StatusChangeModal";
 import { updateBookingStatus } from "@/api/booking";
 import { useAlert } from "@/context/AlertContext";
 import { AlertMessages, AlertConfigs } from "@/lib/alertMessages";
@@ -33,12 +33,13 @@ interface ListPageProps {
   isError: boolean;
   isLoading: boolean;
   onPageChange: (page: number) => void;
+  onRefresh?: () => void;
 }
 
-export default function ListPage({ bookings, pagination, isError, isLoading, onPageChange }: ListPageProps) {
+export default function ListPage({ bookings, pagination, isError, isLoading, onPageChange, onRefresh }: ListPageProps) {
+  const router = useRouter();
   const { showSuccess, showError } = useAlert();
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [updatingBookingId, setUpdatingBookingId] = useState<number | null>(null);
   
   // Filter states
   const [dateRange, setDateRange] = useState<{
@@ -101,8 +102,9 @@ export default function ListPage({ bookings, pagination, isError, isLoading, onP
     setStatusFilter('all');
   };
 
-  // Handle status change
-  const handleStatusChange = async (bookingId: number, newStatus: BookingStatus) => {
+  // Handle status change directly from dropdown
+  const handleStatusChangeDirect = async (bookingId: number, newStatus: BookingStatus) => {
+    setUpdatingBookingId(bookingId);
     try {
       const response = await updateBookingStatus(bookingId, newStatus);
       
@@ -113,9 +115,10 @@ export default function ListPage({ bookings, pagination, isError, isLoading, onP
           AlertConfigs.SUCCESS
         );
 
-        setInterval(() => {
-          window.location.reload();
-        }, 1000);
+        // Refresh data without reloading page
+        if (onRefresh) {
+          onRefresh();
+        }
       } else {
         showError(
           AlertMessages.ERROR.SAVE_ERROR.title,
@@ -134,18 +137,14 @@ export default function ListPage({ bookings, pagination, isError, isLoading, onP
         errorMessage,
         AlertConfigs.ERROR
       );
+    } finally {
+      setUpdatingBookingId(null);
     }
   };
 
-  // Modal handlers
-  const openStatusChangeModal = (booking: Booking) => {
-    setSelectedBooking(booking);
-    setIsModalOpen(true);
-  };
-
-  const closeStatusChangeModal = () => {
-    setSelectedBooking(null);
-    setIsModalOpen(false);
+  // Navigate to booking detail page
+  const handleViewBookingDetail = (bookingId: number) => {
+    router.push(`/bookings/${bookingId}`);
   };
 
   // Define table columns
@@ -247,19 +246,32 @@ export default function ListPage({ bookings, pagination, isError, isLoading, onP
       key: 'status',
       header: 'Status',
       sortable: true,
-      width: '10%',
+      width: '15%',
       render: (value: unknown, row: Record<string, unknown>) => {
         const booking = row as unknown as Booking;
         const status = booking.status as BookingStatus;
         const expired = isBookingExpired(booking.booking_date, booking.booking_time);
-        const config = getBookingStatusConfig(status);
         const showExpired = shouldShowExpired(status, expired);
+        const isUpdating = updatingBookingId === booking.id;
         
         return (
-          <div className="flex flex-col space-y-1">
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.class}`}>
-              {config.text}
-            </span>
+          <div className="flex flex-col space-y-2">
+            <select
+              value={status}
+              onChange={(e) => handleStatusChangeDirect(booking.id, parseInt(e.target.value) as BookingStatus)}
+              disabled={isUpdating}
+              className={`px-3 py-1 rounded-lg border text-sm font-medium cursor-pointer disabled:opacity-50 ${
+                status === BOOKING_STATUS.BOOKED
+                  ? 'bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900 dark:text-blue-200 dark:border-blue-700'
+                  : status === BOOKING_STATUS.DONE
+                  ? 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900 dark:text-green-200 dark:border-green-700'
+                  : 'bg-red-100 text-red-800 border-red-300 dark:bg-red-900 dark:text-red-200 dark:border-red-700'
+              }`}
+            >
+              <option value={BOOKING_STATUS.BOOKED}>Booked</option>
+              <option value={BOOKING_STATUS.DONE}>Done</option>
+              <option value={BOOKING_STATUS.CANCELLED}>Cancelled</option>
+            </select>
             {showExpired && (
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${EXPIRED_STATUS_CONFIG.class}`}>
                 {EXPIRED_STATUS_CONFIG.text}
@@ -274,15 +286,18 @@ export default function ListPage({ bookings, pagination, isError, isLoading, onP
       header: 'Actions',
       sortable: false,
       width: '20%',
-      render: (value: unknown, row: Record<string, unknown>) => (
+      render: (value: unknown, row: Record<string, unknown>) => {
+        const booking = row as unknown as Booking;
+        return (
           <button
-            onClick={() => openStatusChangeModal(row as unknown as Booking)}
+            onClick={() => handleViewBookingDetail(booking.id)}
             className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
-            title="Change Status"
+            title="View Details"
           >
             <InfoIcon className="w-6 h-6 fill-current" />
           </button>
-      ),
+        );
+      },
     },
   ];
   
@@ -460,12 +475,6 @@ export default function ListPage({ bookings, pagination, isError, isLoading, onP
         )}
       </ComponentCard>
 
-      <StatusChangeModal
-        isOpen={isModalOpen}
-        onClose={closeStatusChangeModal}
-        booking={selectedBooking}
-        onStatusChange={handleStatusChange}
-      />
     </div>
   );
 }

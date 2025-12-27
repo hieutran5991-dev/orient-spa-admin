@@ -54,7 +54,7 @@ export default function CreateBookingPageForm() {
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [formData, setFormData] = useState<BookingFormData>({
     agency_id: '1', // Default agency ID
-    booking_date: null,
+    booking_date: new Date(),
     booking_time: '',
     number_of_people: '1',
     guestProducts: {},

@@ -59,7 +59,7 @@ export default function CreateBookingForm({
   const { user } = useAuth();
   const [formData, setFormData] = useState<BookingFormData>({
     agency_id: '',
-    booking_date: null,
+    booking_date: new Date(),
     booking_time: '',
     number_of_people: '1',
     guestProducts: {},
@@ -188,7 +188,7 @@ export default function CreateBookingForm({
       // Reset form
       setFormData({
         agency_id: '',
-        booking_date: null,
+        booking_date: new Date(),
         booking_time: '',
         number_of_people: '1',
         guestProducts: {},
@@ -216,7 +216,7 @@ export default function CreateBookingForm({
     if (!isSubmitting) {
       setFormData({
         agency_id: '',
-        booking_date: null,
+        booking_date: new Date(),
         booking_time: '',
         number_of_people: '1',
         guestProducts: {},
