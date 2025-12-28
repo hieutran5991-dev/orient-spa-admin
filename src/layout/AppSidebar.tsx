@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState,useCallback, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -74,7 +74,10 @@ const navItems: NavItem[] = [
       </svg>
     ),
     name: "Settings",
-    path: "/settings",
+    subItems: [
+      { name: "General Information", path: "/settings/general" },
+      { name: "Source", path: "/settings/sources" },
+    ],
   },
   // {
   //   icon: <PageIcon />,
@@ -86,6 +89,7 @@ const navItems: NavItem[] = [
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
+  const router = useRouter();
   const { user } = useAuth();
 
   // Check if user has permission to view a menu item
@@ -107,10 +111,24 @@ const AppSidebar: React.FC = () => {
 
   // Filter nav items based on permissions
   const filteredNavItems = useMemo(() => {
-    return navItems.filter((item) => {
-      if (!item.path) return true; // Keep items without path (like submenus)
-      return hasPermission(item.path);
-    });
+    return navItems.map((item) => {
+      // If item has subItems, filter them based on permissions
+      if (item.subItems) {
+        const filteredSubItems = item.subItems.filter((subItem) => {
+          return hasPermission(subItem.path);
+        });
+        // Only show the parent item if it has at least one visible subItem
+        if (filteredSubItems.length === 0) {
+          return null;
+        }
+        return { ...item, subItems: filteredSubItems };
+      }
+      // If item has path, check permission
+      if (item.path) {
+        return hasPermission(item.path) ? item : null;
+      }
+      return item;
+    }).filter((item): item is NavItem => item !== null);
   }, [hasPermission]);
 
   const renderMenuItems = (
@@ -122,9 +140,19 @@ const AppSidebar: React.FC = () => {
         <li key={nav.name}>
           {nav.subItems ? (
             <button
-              onClick={() => handleSubmenuToggle(index, menuType)}
+              onClick={() => {
+                // If submenu is not open, navigate to first subItem path
+                if (!(openSubmenu?.type === menuType && openSubmenu?.index === index)) {
+                  const firstSubItem = nav.subItems?.[0];
+                  if (firstSubItem) {
+                    router.push(firstSubItem.path);
+                  }
+                }
+                handleSubmenuToggle(index, menuType);
+              }}
               className={`menu-item group  ${
-                openSubmenu?.type === menuType && openSubmenu?.index === index
+                (openSubmenu?.type === menuType && openSubmenu?.index === index) ||
+                nav.subItems?.some(subItem => isActive(subItem.path))
                   ? "menu-item-active"
                   : "menu-item-inactive"
               } cursor-pointer ${
@@ -135,7 +163,8 @@ const AppSidebar: React.FC = () => {
             >
               <span
                 className={` ${
-                  openSubmenu?.type === menuType && openSubmenu?.index === index
+                  (openSubmenu?.type === menuType && openSubmenu?.index === index) ||
+                  nav.subItems?.some(subItem => isActive(subItem.path))
                     ? "menu-item-icon-active"
                     : "menu-item-icon-inactive"
                 }`}
@@ -225,7 +254,10 @@ const AppSidebar: React.FC = () => {
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   // const isActive = (path: string) => path === pathname;
-   const isActive = useCallback((path: string) => path === pathname, [pathname]);
+  const isActive = useCallback((path: string) => {
+    // Check exact match or if pathname starts with path (for submenu items)
+    return pathname === path || pathname.startsWith(path + '/');
+  }, [pathname]);
 
   useEffect(() => {
     // Check if the current path matches any submenu item

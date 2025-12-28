@@ -1,6 +1,7 @@
 import { Agency } from "./agency";
 import { BookingStatus } from "@/constants/booking-status";
 import { ProductPrices } from "./product";
+import { Source } from "./source";
 
 export interface Booking {
   id: number;
@@ -16,8 +17,10 @@ export interface Booking {
   email: string;
   tel_prefix?: string;
   phone: string;
+  vn_phone_number?: string;
   nation?: string;
   social_account_id?: string;
+  social_app?: string;
   gclid?: string;
   note?: string;
   total_prices: ProductPrices;
@@ -29,6 +32,7 @@ export interface Booking {
   
   // Relations
   agency?: Agency;
+  source?: Source;
 }
 
 export interface BookingDetail {
@@ -69,6 +73,7 @@ export interface CreateBookingRequest {
   social_account_id?: string;
   note?: string;
   user_id?: number;
+  source_id?: number;
 }
 
 export interface UpdateBookingRequest extends Partial<CreateBookingRequest> {

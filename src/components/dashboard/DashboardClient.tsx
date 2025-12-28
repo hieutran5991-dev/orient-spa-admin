@@ -22,13 +22,20 @@ export default function DashboardClient() {
   const [isError, setIsError] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('Failed to load dashboard data. Please try again later.');
   const hasShownErrorRef = useRef<boolean>(false);
+  // Initialize date range to current month (first day to last day)
+  const getCurrentMonthRange = () => {
+    const today = new Date();
+    const startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    endDate.setHours(23, 59, 59, 999);
+    return { startDate, endDate };
+  };
+
   const [dateRange, setDateRange] = useState<{
     startDate: Date | null;
     endDate: Date | null;
-  }>({
-    startDate: null,
-    endDate: null
-  });
+  }>(getCurrentMonthRange());
 
   const fetchReport = async () => {
     setIsLoading(true);
@@ -96,7 +103,7 @@ export default function DashboardClient() {
   };
 
   const clearFilters = () => {
-    setDateRange({ startDate: null, endDate: null });
+    setDateRange(getCurrentMonthRange());
   };
 
   // Quick date range selectors

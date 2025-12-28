@@ -23,8 +23,16 @@ export const getBooking = async (id: number): Promise<AxiosResponse<BookingRespo
 };
 
 // Update booking status
-export const updateBookingStatus = async (id: number, status: BookingStatus): Promise<AxiosResponse<BookingResponse>> => {
-  return await request.put(`bookings/${id}/status`, { status });
+export const updateBookingStatus = async (
+  id: number, 
+  status: BookingStatus, 
+  statusReason?: string
+): Promise<AxiosResponse<BookingResponse>> => {
+  const payload: { status: BookingStatus; status_reason?: string } = { status };
+  if (statusReason) {
+    payload.status_reason = statusReason;
+  }
+  return await request.put(`bookings/${id}/status`, payload);
 };
 
 // Create new booking

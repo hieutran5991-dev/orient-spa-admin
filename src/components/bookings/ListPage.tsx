@@ -34,12 +34,21 @@ interface ListPageProps {
   isLoading: boolean;
   onPageChange: (page: number) => void;
   onRefresh?: () => void;
+  onBookingUpdate?: (bookingId: number, updatedBooking: Partial<Booking>) => void;
 }
 
-export default function ListPage({ bookings, pagination, isError, isLoading, onPageChange, onRefresh }: ListPageProps) {
+export default function ListPage({ bookings, pagination, isError, isLoading, onPageChange, onRefresh, onBookingUpdate }: ListPageProps) {
   const router = useRouter();
   const { showSuccess, showError } = useAlert();
   const [updatingBookingId, setUpdatingBookingId] = useState<number | null>(null);
+  const [cancellationModal, setCancellationModal] = useState<{
+    isOpen: boolean;
+    bookingId: number | null;
+  }>({
+    isOpen: false,
+    bookingId: null,
+  });
+  const [cancellationReason, setCancellationReason] = useState('');
   
   // Filter states
   const [dateRange, setDateRange] = useState<{
@@ -104,21 +113,37 @@ export default function ListPage({ bookings, pagination, isError, isLoading, onP
 
   // Handle status change directly from dropdown
   const handleStatusChangeDirect = async (bookingId: number, newStatus: BookingStatus) => {
+    // If cancelling, show modal to enter cancellation reason
+    if (newStatus === BOOKING_STATUS.CANCELLED) {
+      setCancellationModal({
+        isOpen: true,
+        bookingId,
+      });
+      setCancellationReason('');
+      return;
+    }
+
     setUpdatingBookingId(bookingId);
     try {
       const response = await updateBookingStatus(bookingId, newStatus);
       
       if (response.status === HTTP_CODES.SUCCESS) {
+        // Update booking in local state
+        if (onBookingUpdate && response.data?.data) {
+          onBookingUpdate(bookingId, {
+            ...response.data.data,
+            status: newStatus
+          });
+        } else if (onRefresh) {
+          // Fallback to refresh if onBookingUpdate is not provided
+          onRefresh();
+        }
+
         showSuccess(
           AlertMessages.SUCCESS.BOOKING_UPDATED.title,
           AlertMessages.SUCCESS.BOOKING_UPDATED.message,
           AlertConfigs.SUCCESS
         );
-
-        // Refresh data without reloading page
-        if (onRefresh) {
-          onRefresh();
-        }
       } else {
         showError(
           AlertMessages.ERROR.SAVE_ERROR.title,
@@ -139,6 +164,77 @@ export default function ListPage({ bookings, pagination, isError, isLoading, onP
       );
     } finally {
       setUpdatingBookingId(null);
+    }
+  };
+
+  // Handle cancellation with reason
+  const handleCancellation = async () => {
+    if (!cancellationModal.bookingId || !cancellationReason.trim()) {
+      showError(
+        'Validation Error',
+        'Cancellation reason is required',
+        AlertConfigs.ERROR
+      );
+      return;
+    }
+
+    setUpdatingBookingId(cancellationModal.bookingId);
+    try {
+      const response = await updateBookingStatus(
+        cancellationModal.bookingId,
+        BOOKING_STATUS.CANCELLED,
+        cancellationReason.trim()
+      );
+      
+      if (response.status === HTTP_CODES.SUCCESS) {
+        // Update booking in local state
+        if (onBookingUpdate && response.data?.data) {
+          onBookingUpdate(cancellationModal.bookingId, {
+            ...response.data.data,
+            status: BOOKING_STATUS.CANCELLED
+          });
+        } else if (onRefresh) {
+          // Fallback to refresh if onBookingUpdate is not provided
+          onRefresh();
+        }
+
+        showSuccess(
+          AlertMessages.SUCCESS.BOOKING_UPDATED.title,
+          AlertMessages.SUCCESS.BOOKING_UPDATED.message,
+          AlertConfigs.SUCCESS
+        );
+
+        // Close modal and reset
+        setCancellationModal({ isOpen: false, bookingId: null });
+        setCancellationReason('');
+      } else {
+        showError(
+          AlertMessages.ERROR.SAVE_ERROR.title,
+          AlertMessages.ERROR.SAVE_ERROR.message,
+          AlertConfigs.ERROR
+        );
+      }
+    } catch (error) {
+      console.error('Error cancelling booking:', error);
+      const errorTitle = isPermissionError(error) 
+        ? AlertMessages.ERROR.PERMISSION_DENIED.title 
+        : getErrorTitle(error);
+      const errorMessage = getErrorMessage(error);
+      showError(
+        errorTitle,
+        errorMessage,
+        AlertConfigs.ERROR
+      );
+    } finally {
+      setUpdatingBookingId(null);
+    }
+  };
+
+  // Close cancellation modal
+  const handleCloseCancellationModal = () => {
+    if (updatingBookingId === null) {
+      setCancellationModal({ isOpen: false, bookingId: null });
+      setCancellationReason('');
     }
   };
 
@@ -190,6 +286,20 @@ export default function ListPage({ bookings, pagination, isError, isLoading, onP
           {value ? String(value) : 'Not Provided'}
         </span>
       ),
+    },
+    {
+      key: 'source',
+      header: 'Source',
+      sortable: false,
+      width: '10%',
+      render: (value: unknown, row: Record<string, unknown>) => {
+        const booking = row as unknown as Booking;
+        return (
+          <span className="font-medium text-gray-700 dark:text-gray-300">
+            {booking.source?.name || 'N/A'}
+          </span>
+        );
+      },
     },
     {
       key: 'booking_date',
@@ -475,6 +585,80 @@ export default function ListPage({ bookings, pagination, isError, isLoading, onP
         )}
       </ComponentCard>
 
+      {/* Cancellation Reason Modal */}
+      {cancellationModal.isOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[99999] p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Cancel Booking
+              </h2>
+              <button
+                onClick={handleCloseCancellationModal}
+                disabled={updatingBookingId !== null}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-50"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+              <div className="mb-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Please provide a reason for cancelling this booking. This information is required.
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Cancellation Reason <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={cancellationReason}
+                  onChange={(e) => setCancellationReason(e.target.value)}
+                  placeholder="Enter the reason for cancellation..."
+                  rows={4}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                  autoFocus
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  This field is required
+                </p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-end space-x-3 p-6 border-t border-gray-200 dark:border-gray-700">
+              <button
+                type="button"
+                onClick={handleCloseCancellationModal}
+                disabled={updatingBookingId !== null}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleCancellation}
+                disabled={!cancellationReason.trim() || updatingBookingId !== null}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {updatingBookingId !== null ? (
+                  <span className="flex items-center gap-2">
+                    <span className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                    Cancelling...
+                  </span>
+                ) : (
+                  'Confirm Cancellation'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

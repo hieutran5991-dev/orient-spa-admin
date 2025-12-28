@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { createBooking } from '@/api/booking';
 import { CreateBookingRequest } from '@/types/booking';
 import { useAlert } from '@/context/AlertContext';
@@ -14,6 +15,8 @@ import TreatmentSelector from './TreatmentSelector';
 import { Product } from '@/types/product';
 import { Agency } from '@/types/agency';
 import { formatDateToAPI } from '@/lib/datetime';
+import { getSourceOptions } from '@/api/source';
+import { SourceOption } from '@/types/source';
 
 interface CreateBookingFormProps {
   isOpen: boolean;
@@ -35,6 +38,7 @@ interface BookingFormData {
   phone: string;
   social_account_id: string;
   note: string;
+  source_id: string;
 }
 
 interface BookingFormErrors {
@@ -69,9 +73,27 @@ export default function CreateBookingForm({
     phone: '',
     social_account_id: '',
     note: '',
+    source_id: '',
   });
   const [errors, setErrors] = useState<BookingFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sourceOptions, setSourceOptions] = useState<SourceOption[]>([]);
+
+  // Fetch source options
+  useEffect(() => {
+    const fetchSources = async () => {
+      try {
+        const response = await getSourceOptions();
+        if (response.data?.data) {
+          setSourceOptions(response.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching sources:', error);
+        // Don't show error, just log it - source is optional
+      }
+    };
+    fetchSources();
+  }, []);
 
   const numberOfGuests = parseInt(formData.number_of_people) || 1;
 
@@ -180,6 +202,7 @@ export default function CreateBookingForm({
         ...(formData.social_account_id.trim() && { social_account_id: formData.social_account_id.trim() }),
         ...(formData.note.trim() && { note: formData.note.trim() }),
         ...(user?.id && { user_id: user.id }),
+        ...(formData.source_id && { source_id: parseInt(formData.source_id) }),
       };
 
       await createBooking(bookingData);
@@ -198,6 +221,7 @@ export default function CreateBookingForm({
         phone: '',
         social_account_id: '',
         note: '',
+        source_id: '',
       });
       setErrors({});
       
@@ -226,6 +250,7 @@ export default function CreateBookingForm({
         phone: '',
         social_account_id: '',
         note: '',
+        source_id: '',
       });
       setErrors({});
       onClose();
@@ -279,6 +304,32 @@ export default function CreateBookingForm({
                 <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.agency_id}</p>
               )}
             </div>
+
+            {/* Source */}
+            {sourceOptions.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label htmlFor="source_id" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Source
+                  </label>
+                  <Link
+                    href="/settings/sources"
+                    className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                  >
+                    Manage sources
+                  </Link>
+                </div>
+                <Select
+                  options={sourceOptions.map(source => ({
+                    value: source.value.toString(),
+                    label: source.label
+                  }))}
+                  placeholder="Select a source (optional)"
+                  value={formData.source_id}
+                  onChange={(value) => handleSelectChange('source_id', value)}
+                />
+              </div>
+            )}
 
             {/* Booking Date */}
             <div>

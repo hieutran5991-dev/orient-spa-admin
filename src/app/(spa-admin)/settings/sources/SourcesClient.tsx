@@ -1,16 +1,17 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import ListPage from '@/components/bookings/ListPage';
-import { getBookings } from '@/api/booking';
-import { Booking, PaginationInfo } from '@/types/booking';
+import SourcesListPage from '@/components/sources/SourcesListPage';
+import { getSources } from '@/api/source';
+import { Source } from '@/types/source';
+import { PaginationInfo } from '@/types/booking';
 import { useAlert } from '@/context/AlertContext';
 import { AlertMessages, AlertConfigs } from '@/lib/alertMessages';
 import { isPermissionError } from '@/lib/errorHandler';
 
-export default function BookingsClient() {
+export default function SourcesClient() {
   const { showError } = useAlert();
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [sources, setSources] = useState<Source[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [isError, setIsError] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -18,12 +19,16 @@ export default function BookingsClient() {
   const [perPage] = useState<number>(10);
   const hasShownErrorRef = useRef<boolean>(false);
 
-  const fetchBookings = async (page: number) => {
+  const fetchSources = async (page: number) => {
     setIsLoading(true);
     try {
-      const response = await getBookings(page, perPage);
-      if (response.data?.data && response.data?.pagination) {
-        setBookings(response.data.data);
+      const response = await getSources(page, perPage);
+      if (response.data && response.data.data && response.data.pagination) {
+        // Ensure data is an array
+        const sourcesData = Array.isArray(response.data.data) 
+          ? response.data.data 
+          : [];
+        setSources(sourcesData as Source[]);
         setPagination(response.data.pagination);
         setIsError(false);
         hasShownErrorRef.current = false; // Reset on success
@@ -31,7 +36,7 @@ export default function BookingsClient() {
         setIsError(true);
       }
     } catch (error) {
-      console.error('Error fetching bookings:', error);
+      console.error('Error fetching sources:', error);
       setIsError(true);
       
       // Show error alert if it's a permission error and only once
@@ -49,7 +54,7 @@ export default function BookingsClient() {
   };
 
   useEffect(() => {
-    fetchBookings(currentPage);
+    fetchSources(currentPage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 
@@ -58,28 +63,18 @@ export default function BookingsClient() {
   };
 
   const handleRefresh = () => {
-    fetchBookings(currentPage);
-  };
-
-  const handleBookingUpdate = (bookingId: number, updatedBooking: Partial<Booking>) => {
-    setBookings(prevBookings => 
-      prevBookings.map(booking => 
-        booking.id === bookingId 
-          ? { ...booking, ...updatedBooking }
-          : booking
-      )
-    );
+    fetchSources(currentPage);
   };
 
   return (
-    <ListPage 
-      bookings={bookings} 
+    <SourcesListPage 
+      sources={sources} 
       pagination={pagination}
       isError={isError}
       isLoading={isLoading}
       onPageChange={handlePageChange}
       onRefresh={handleRefresh}
-      onBookingUpdate={handleBookingUpdate}
     />
   );
 }
+

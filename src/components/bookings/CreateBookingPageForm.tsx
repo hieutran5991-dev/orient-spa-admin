@@ -15,9 +15,12 @@ import TimePicker from '../form/time-picker';
 import GuestPicker from '../form/guest-picker';
 import PhoneInputWithPrefix from '../form/PhoneInputWithPrefix';
 import AppIdInput from '../form/AppIdInput';
+import SourceInput from '../form/SourceInput';
 import TreatmentSelector from './TreatmentSelector';
 import { Product } from '@/types/product';
 import { formatDateToAPI } from '@/lib/datetime';
+import { getSourceOptions } from '@/api/source';
+import { SourceOption } from '@/types/source';
 
 interface BookingFormData {
   agency_id: string;
@@ -34,6 +37,7 @@ interface BookingFormData {
   app_type: string;
   social_account_id: string;
   note: string;
+  source_id: string;
 }
 
 interface BookingFormErrors {
@@ -67,25 +71,33 @@ export default function CreateBookingPageForm() {
     app_type: '',
     social_account_id: '',
     note: '',
+    source_id: '',
   });
   const [errors, setErrors] = useState<BookingFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sourceOptions, setSourceOptions] = useState<SourceOption[]>([]);
 
   const numberOfGuests = parseInt(formData.number_of_people) || 1;
 
-  // Fetch products
+  // Fetch products and sources
   useEffect(() => {
     const fetchData = async () => {
       setIsLoadingData(true);
       try {
-        const productsResponse = await getProducts(1, 100); // Get up to 100 products
+        const [productsResponse, sourcesResponse] = await Promise.all([
+          getProducts(1, 100), // Get up to 100 products
+          getSourceOptions().catch(() => null), // Optional, don't fail if it errors
+        ]);
 
         if (productsResponse.data?.data) {
           setProducts(productsResponse.data.data);
         }
+        if (sourcesResponse?.data?.data) {
+          setSourceOptions(sourcesResponse.data.data);
+        }
       } catch (error) {
-        console.error('Error fetching products:', error);
-        showError('Error', 'Failed to load products. Please refresh the page.');
+        console.error('Error fetching data:', error);
+        showError('Error', 'Failed to load data. Please refresh the page.');
       } finally {
         setIsLoadingData(false);
       }
@@ -186,6 +198,7 @@ export default function CreateBookingPageForm() {
         ...(formData.social_account_id.trim() && { social_account_id: formData.social_account_id.trim() }),
         ...(formData.note.trim() && { note: formData.note.trim() }),
         ...(user?.id && { user_id: user.id }),
+        ...(formData.source_id && { source_id: parseInt(formData.source_id) }),
       };
 
       await createBooking(bookingData);
@@ -403,7 +416,7 @@ export default function CreateBookingPageForm() {
             </div>
           </div>
 
-          {/* VN Phone Number and App ID */}
+          {/* VN Phone Number, App ID, and Source */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* VN Phone Number */}
             <div>
@@ -436,8 +449,25 @@ export default function CreateBookingPageForm() {
                 placeholder="app ID"
               />
             </div>
+
+            {/* Source */}
+            {sourceOptions.length > 0 && (
+              <div>
+                <SourceInput
+                  id="source_id"
+                  label="Source"
+                  sourceId={formData.source_id}
+                  sources={sourceOptions}
+                  onSourceChange={(sourceId) => {
+                    setFormData(prev => ({ ...prev, source_id: sourceId }));
+                  }}
+                  placeholder="Select source (optional)"
+                />
+              </div>
+            )}
           </div>
 
+          {/* Notes */}
           <div>
             <label htmlFor="note" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Notes (Optional)

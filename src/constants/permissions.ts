@@ -54,5 +54,7 @@ export const MENU_PERMISSIONS = {
   '/products': PERMISSIONS.PRODUCT_VIEW,
   '/bookings': PERMISSIONS.BOOKING_VIEW,
   '/settings': PERMISSIONS.SETTING_VIEW,
+  '/settings/general': PERMISSIONS.SETTING_VIEW,
+  '/settings/sources': PERMISSIONS.SETTING_VIEW,
 } as const;
 

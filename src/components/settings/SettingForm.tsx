@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import ComponentCard from '@/components/common/ComponentCard';
-import PageBreadcrumb from '@/components/common/PageBreadCrumb';
 import InputField from '@/components/form/input/InputField';
 import { Setting } from '@/types/setting';
 import { SETTING_KEYS, SETTING_LABELS, SETTING_VALIDATIONS } from '@/constants/settings';
@@ -116,37 +115,25 @@ export default function SettingForm({ settings, isError }: SettingFormProps) {
 
   if (isError) {
     return (
-      <div>
-        <PageBreadcrumb pageTitle="Settings" />
-        <div className="space-y-6">
-          <ComponentCard title="Error">
-            <div className="p-6 text-center">
-              <p className="text-red-500 mb-4">Failed to load settings. Please try again later.</p>
-              <button
-                onClick={() => window.location.reload()}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700"
-              >
-                Try Again
-              </button>
-            </div>
-          </ComponentCard>
-        </div>
+      <div className="space-y-6">
+        <ComponentCard title="Error">
+          <div className="p-6 text-center">
+            <p className="text-red-500 mb-4">Failed to load settings. Please try again later.</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700"
+            >
+              Try Again
+            </button>
+          </div>
+        </ComponentCard>
       </div>
     );
   }
 
   return (
-    <div>
-      <PageBreadcrumb pageTitle="Spa Settings" />
-      
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Spa Settings
-          </h1>
-        </div>
-        
-        <ComponentCard title="General Information">
+    <div className="space-y-6">
+      <ComponentCard title="General Information">
           <form onSubmit={handleSubmit} className="space-y-6 p-6">
             {
               Object.keys(SETTING_KEYS).map(key => (
@@ -179,8 +166,7 @@ export default function SettingForm({ settings, isError }: SettingFormProps) {
               </button>
             </div>
           </form>
-        </ComponentCard>
-      </div>
+      </ComponentCard>
     </div>
   );
 }

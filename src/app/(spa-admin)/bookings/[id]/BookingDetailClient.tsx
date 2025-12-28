@@ -27,6 +27,7 @@ export default function BookingDetailClient({ bookingId }: { bookingId: number }
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<BookingStatus | null>(null);
+  const [cancellationReason, setCancellationReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -70,9 +71,23 @@ export default function BookingDetailClient({ bookingId }: { bookingId: number }
     
     if (selectedStatus === null || !booking) return;
 
+    // Validate cancellation reason if status is CANCELLED
+    if (selectedStatus === BOOKING_STATUS.CANCELLED && !cancellationReason.trim()) {
+      showError(
+        'Validation Error',
+        'Cancellation reason is required when cancelling a booking',
+        AlertConfigs.ERROR
+      );
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      const response = await updateBookingStatus(booking.id, selectedStatus);
+      const response = await updateBookingStatus(
+        booking.id, 
+        selectedStatus,
+        selectedStatus === BOOKING_STATUS.CANCELLED ? cancellationReason : undefined
+      );
       
       if (response.status === HTTP_CODES.SUCCESS) {
         showSuccess(
@@ -81,11 +96,11 @@ export default function BookingDetailClient({ bookingId }: { bookingId: number }
           AlertConfigs.SUCCESS
         );
         
-        // Refresh booking data
-        const refreshResponse = await getBooking(bookingId);
-        if (refreshResponse.data?.data) {
-          setBooking(refreshResponse.data.data);
+        // Update booking data from response
+        if (response.data?.data) {
+          setBooking(response.data.data);
           setSelectedStatus(null);
+          setCancellationReason('');
         }
       } else {
         showError(
@@ -112,8 +127,11 @@ export default function BookingDetailClient({ bookingId }: { bookingId: number }
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-gray-500 dark:text-gray-400">Loading booking details...</div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+          <p className="text-gray-500 dark:text-gray-400">Loading booking details...</p>
+        </div>
       </div>
     );
   }
@@ -129,12 +147,13 @@ export default function BookingDetailClient({ bookingId }: { bookingId: number }
             href="/bookings"
             className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
           >
-            Back to List
+            ← Back to List
           </Link>
         </div>
         <ComponentCard title="Error">
           <div className="text-center py-12">
-            <p className="text-red-500 dark:text-red-400">
+            <div className="text-red-500 dark:text-red-400 text-4xl mb-4">⚠️</div>
+            <p className="text-red-500 dark:text-red-400 font-medium">
               Failed to load booking details. Please try again later.
             </p>
           </div>
@@ -154,112 +173,164 @@ export default function BookingDetailClient({ bookingId }: { bookingId: number }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Booking Information #{booking.id}
-        </h1>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+            Booking Details
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Booking ID: #{booking.id}
+          </p>
+        </div>
         <Link
           href="/bookings"
-          className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+          className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700"
         >
-          Back to List
+          ← Back to List
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Booking Information */}
-        <div className="space-y-6">
-          <ComponentCard title="Booking General Information">
-            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 space-y-3">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Customer Name:
+        <div className="lg:col-span-2 space-y-6">
+          {/* Customer Information Card */}
+          <ComponentCard title="Customer Information">
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    Full Name
                   </label>
-                  <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
                     {booking.full_name}
                   </p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Email:
+                <div className="space-y-1">
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    Email
                   </label>
-                  <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white break-all">
                     {booking.email}
                   </p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Phone:
+                <div className="space-y-1">
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    Phone Number
                   </label>
-                  <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                    <strong>{booking.tel_prefix}</strong>{booking.phone}
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    <span className="text-gray-600 dark:text-gray-400">{booking.tel_prefix}</span>
+                    {booking.phone}
                   </p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Nation:
+                <div className="space-y-1">
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    Nation
                   </label>
-                  <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
                     {booking.nation || 'N/A'}
                   </p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Social Account ID:
+                {booking.vn_phone_number && (
+                  <div className="space-y-1">
+                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                      VN Phone Number
+                    </label>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      +84 {booking.vn_phone_number}
+                    </p>
+                  </div>
+                )}
+                {booking.social_app && (
+                  <div className="space-y-1">
+                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                      Social App
+                    </label>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white capitalize">
+                      {booking.social_app === 'kakaotalk' ? 'KakaoTalk' : 
+                       booking.social_app === 'whatsapp' ? 'WhatsApp' :
+                       booking.social_app === 'line' ? 'Line' :
+                       booking.social_app === 'zalo' ? 'Zalo' :
+                       booking.social_app}
+                    </p>
+                  </div>
+                )}
+                {booking.social_account_id && (
+                  <div className="space-y-1 sm:col-span-2">
+                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                      Social Account ID
+                    </label>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      {booking.social_app && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 mr-2 capitalize">
+                          {booking.social_app === 'kakaotalk' ? 'KakaoTalk' : 
+                           booking.social_app === 'whatsapp' ? 'WhatsApp' :
+                           booking.social_app === 'line' ? 'Line' :
+                           booking.social_app === 'zalo' ? 'Zalo' :
+                           booking.social_app}
+                        </span>
+                      )}
+                      {booking.social_account_id}
+                    </p>
+                  </div>
+                )}
+                {booking.source && (
+                  <div className="space-y-1">
+                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                      Source
+                    </label>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      {booking.source.name}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </ComponentCard>
+
+          {/* Booking Details Card */}
+          <ComponentCard title="Booking Information">
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    Booking Date
                   </label>
-                  <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                    {booking.social_account_id || 'Not Provided'}
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    {new Date(booking.booking_date).toLocaleDateString('vi-VN', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
                   </p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Number of People:
+                <div className="space-y-1">
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    Booking Time
                   </label>
-                  <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                    {booking.number_of_people}
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Booking Date:
-                  </label>
-                  <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                    {new Date(booking.booking_date).toLocaleDateString('vi-VN')}
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Booking Time:
-                  </label>
-                  <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
                     {booking.booking_time}
                   </p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Total Price:
+                <div className="space-y-1">
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    Number of People
                   </label>
-                  <div className="mt-1 space-y-1">
-                    {Object.entries(booking.total_prices || {}).map(
-                      ([currencyCode, price]) => (
-                        <div key={currencyCode} className="text-sm text-gray-900 dark:text-white">
-                          {currencyCode.toUpperCase()}: {formatPriceWithCurrency(price, currencyCode)}
-                        </div>
-                      )
-                    )}
-                  </div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    {booking.number_of_people} {booking.number_of_people === 1 ? 'person' : 'people'}
+                  </p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Current Status:
+                <div className="space-y-1">
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    Status
                   </label>
-                  <div className="mt-1">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${currentStatusConfig.class}`}>
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${currentStatusConfig.class}`}>
                       {currentStatusConfig.text}
                     </span>
                     {isExpired && booking.status === BOOKING_STATUS.BOOKED && (
-                      <span className="ml-2 px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
                         Expired
                       </span>
                     )}
@@ -267,11 +338,11 @@ export default function BookingDetailClient({ bookingId }: { bookingId: number }
                 </div>
               </div>
               {booking.note && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Note:
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                    Note
                   </label>
-                  <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                  <p className="text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
                     {booking.note}
                   </p>
                 </div>
@@ -279,63 +350,43 @@ export default function BookingDetailClient({ bookingId }: { bookingId: number }
             </div>
           </ComponentCard>
 
-          {/* Status Change Form */}
-          {availableTransitions.length > 0 && (
-            <ComponentCard title="Change Status">
-              <form onSubmit={handleStatusChange} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    New Status:
-                  </label>
-                  <Select
-                    placeholder="Select New Status"
-                    options={statusOptions}
-                    value={selectedStatus?.toString() || ''}
-                    onChange={(value) => setSelectedStatus(Number(value) as BookingStatus)}
-                  />
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    {isExpired ? 'Expired' : 'Not expired'}
-                  </p>
-                </div>
-
-                <div className="flex justify-end space-x-3 pt-4">
-                  <button
-                    type="submit"
-                    disabled={selectedStatus === null || isSubmitting}
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isSubmitting ? 'Updating...' : 'Update Status'}
-                  </button>
-                </div>
-              </form>
-            </ComponentCard>
-          )}
-        </div>
-
-        {/* Right Column - Booking Details */}
-        <div>
+          {/* Service Details Card */}
           <ComponentCard title="Service Details">
             {booking.booking_details && Object.keys(booking.booking_details).length > 0 ? (
               <div className="space-y-4">
-                {/* Group services by guest */}
                 {Object.entries(booking.booking_details)
                   .filter(([, guestServices]) => guestServices && Array.isArray(guestServices))
                   .map(([guestKey, guestServices], index) => (
-                    <div key={guestKey}>
-                      <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-                        Guest {index + 1}:
+                    <div key={guestKey} className={index > 0 ? 'pt-4 border-t border-gray-200 dark:border-gray-700' : ''}>
+                      <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                        Guest {index + 1}
                       </h4>
-                      <div className="space-y-1 mb-3">
+                      <div className="space-y-2">
                         {guestServices!.map((service, serviceIndex) => (
-                          <div key={`${guestKey}-${serviceIndex}`} className="flex justify-between items-center text-sm">
-                            <span className="text-gray-700 dark:text-gray-300">
-                              {service.name}
-                            </span>
-                            <div className="text-gray-900 dark:text-white font-medium space-y-1">
+                          <div 
+                            key={`${guestKey}-${serviceIndex}`} 
+                            className="flex justify-between items-start p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                          >
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                {service.name}
+                              </p>
+                              {service.description && (
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                  {service.description}
+                                </p>
+                              )}
+                              {service.duration && (
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                  Duration: {service.duration} minutes
+                                </p>
+                              )}
+                            </div>
+                            <div className="text-right ml-4">
                               {Object.entries(service.prices || {}).map(
                                 ([currencyCode, price]) => (
-                                  <div key={currencyCode}>
-                                    {currencyCode.toUpperCase()}: {formatPriceWithCurrency(price, currencyCode)}
+                                  <div key={currencyCode} className="text-sm font-semibold text-gray-900 dark:text-white">
+                                    {formatPriceWithCurrency(price, currencyCode)}
                                   </div>
                                 )
                               )}
@@ -343,23 +394,20 @@ export default function BookingDetailClient({ bookingId }: { bookingId: number }
                           </div>
                         ))}
                       </div>
-                      {index < Object.keys(booking.booking_details).length - 1 && (
-                        <div className="border-b border-gray-200 dark:border-gray-700 mb-3"></div>
-                      )}
                     </div>
                   ))}
                 
                 {/* Total Price */}
-                <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <div className="pt-4 mt-4 border-t-2 border-gray-300 dark:border-gray-600">
                   <div className="flex justify-between items-center">
-                    <span className="font-semibold text-gray-900 dark:text-white">
-                      Total price
+                    <span className="text-base font-bold text-gray-900 dark:text-white">
+                      Total Price
                     </span>
                     <div className="text-right space-y-1">
                       {Object.entries(booking.total_prices || {}).map(
                         ([currencyCode, price]) => (
-                          <div key={currencyCode} className="font-semibold text-gray-900 dark:text-white">
-                            {currencyCode.toUpperCase()}: {formatPriceWithCurrency(price, currencyCode)}
+                          <div key={currencyCode} className="text-base font-bold text-gray-900 dark:text-white">
+                            {formatPriceWithCurrency(price, currencyCode)}
                           </div>
                         )
                       )}
@@ -368,13 +416,86 @@ export default function BookingDetailClient({ bookingId }: { bookingId: number }
                 </div>
               </div>
             ) : (
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
+              <div className="text-center py-8">
                 <p className="text-gray-500 dark:text-gray-400">
-                  No service details
+                  No service details available
                 </p>
               </div>
             )}
           </ComponentCard>
+        </div>
+
+        {/* Right Column - Status Change */}
+        <div className="lg:col-span-1">
+          {availableTransitions.length > 0 && (
+            <ComponentCard title="Update Status">
+              <form onSubmit={handleStatusChange} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    New Status <span className="text-red-500">*</span>
+                  </label>
+                  <Select
+                    placeholder="Select New Status"
+                    options={statusOptions}
+                    value={selectedStatus?.toString() || ''}
+                    onChange={(value) => {
+                      setSelectedStatus(Number(value) as BookingStatus);
+                      if (Number(value) !== BOOKING_STATUS.CANCELLED) {
+                        setCancellationReason('');
+                      }
+                    }}
+                  />
+                  {isExpired && (
+                    <p className="mt-2 text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                      <span>⚠️</span>
+                      <span>This booking has expired</span>
+                    </p>
+                  )}
+                </div>
+
+                {/* Cancellation Reason Field */}
+                {selectedStatus === BOOKING_STATUS.CANCELLED && (
+                  <div className="animate-in slide-in-from-top-2 duration-200">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Cancellation Reason <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      value={cancellationReason}
+                      onChange={(e) => setCancellationReason(e.target.value)}
+                      placeholder="Please provide a reason for cancellation..."
+                      rows={4}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                      required
+                    />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      This field is required when cancelling a booking
+                    </p>
+                  </div>
+                )}
+
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={
+                      selectedStatus === null || 
+                      isSubmitting || 
+                      (selectedStatus === BOOKING_STATUS.CANCELLED && !cancellationReason.trim())
+                    }
+                    className="w-full px-4 py-2.5 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isSubmitting ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                        Updating...
+                      </span>
+                    ) : (
+                      'Update Status'
+                    )}
+                  </button>
+                </div>
+              </form>
+            </ComponentCard>
+          )}
         </div>
       </div>
     </div>
