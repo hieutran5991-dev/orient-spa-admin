@@ -1,0 +1,111 @@
+name: Build and Deploy Next to VPS (Test)
+
+on:
+  push:
+    branches: [test, develop]
+  pull_request:
+    branches: [test, develop]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Create environment file
+        run: |
+          echo "NEXT_PUBLIC_GOOGLE_CLIENT_ID=187210933074-7r2cq5fggre7f8i99uu66a2bcnslc8s6.apps.googleusercontent.com" >> .env.production
+          echo "NEXT_PUBLIC_API_URL=https://api-test.senspadanang.com/api" >> .env.production
+          echo "NEXT_STORAGE_HOST=admin.senspadanang.com" >> .env.production
+          echo "NEXT_STORAGE_PORT=8889" >> .env.production
+
+      - name: Build application
+        run: yarn build
+        env:
+          NEXT_PUBLIC_GOOGLE_CLIENT_ID: 187210933074-7r2cq5fggre7f8i99uu66a2bcnslc8s6.apps.googleusercontent.com
+          NEXT_PUBLIC_API_URL: https://api-test.senspadanang.com/api
+          NEXT_STORAGE_HOST: admin.senspadanang.com
+          NEXT_STORAGE_PORT: 8889
+
+      - name: Create deployment package
+        run: |
+          mkdir -p deployment
+          cp -r .next deployment/
+          cp -r public deployment/
+          cp package.json deployment/
+          cp yarn.lock deployment/
+          cp next.config.ts deployment/
+          cp ecosystem.config.test.js deployment/
+          cp .env.production deployment/
+          tar -czf deployment.tar.gz -C deployment .
+
+      - name: Deploy to Cloud VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            # Create application directory if it doesn't exist
+            sudo mkdir -p /var/www/spa-admin-test
+            sudo chown $USER:$USER /var/www/spa-admin-test
+
+            # Stop the application if it's running with PM2
+            pm2 stop spa-admin-test || true
+
+            # Clean existing deployment but keep node_modules
+            rm -rf /var/www/spa-admin-test/*
+
+      - name: Copy deployment package to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          source: 'deployment.tar.gz'
+          target: '/var/www/spa-admin-test/'
+
+      - name: Extract and setup application on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            cd /var/www/spa-admin-test
+
+            # Extract deployment package
+            tar -xzf deployment.tar.gz
+            rm deployment.tar.gz
+
+            # Set proper permissions
+            sudo chown -R $USER:$USER /var/www/spa-admin-test
+            sudo chmod -R 755 /var/www/spa-admin-test
+
+            # Install TypeScript and wait for completion
+            echo "Installing TypeScript..."
+            yarn add -D --exact typescript
+            echo "TypeScript installation completed"
+
+            # Start the application with PM2
+            pm2 start ecosystem.config.test.js
+            pm2 save
+
+            # Check application status
+            sleep 5
+            pm2 status
+
