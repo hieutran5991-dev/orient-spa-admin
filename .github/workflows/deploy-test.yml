@@ -46,7 +46,7 @@ jobs:
           cp package.json deployment/
           cp yarn.lock deployment/
           cp next.config.ts deployment/
-          cp ecosystem.config.test.js deployment/
+          cp ecosystem-test.config.js deployment/
           cp .env.production deployment/
           tar -czf deployment.tar.gz -C deployment .
 
@@ -102,7 +102,7 @@ jobs:
             echo "TypeScript installation completed"
 
             # Start the application with PM2
-            pm2 start ecosystem.config.test.js
+            pm2 start ecosystem-test.config.js
             pm2 save
 
             # Check application status
