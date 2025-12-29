@@ -35,7 +35,7 @@ jobs:
         env:
           NEXT_PUBLIC_GOOGLE_CLIENT_ID: 187210933074-7r2cq5fggre7f8i99uu66a2bcnslc8s6.apps.googleusercontent.com
           NEXT_PUBLIC_API_URL: https://api-test.senspadanang.com/api
-          NEXT_STORAGE_HOST: admin.senspadanang.com
+          NEXT_STORAGE_HOST: test.senspadanang.com
           NEXT_STORAGE_PORT: 8889
 
       - name: Create deployment package

@@ -5,6 +5,7 @@ module.exports = {
     script: 'npm',
     args: 'start -- -p 8889',
     cwd: '/var/www/spa-admin-test',
+    exec_mode: 'cluster',
     instances: 1,
     autorestart: true,
     watch: false,
