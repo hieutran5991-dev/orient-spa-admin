@@ -28,10 +28,9 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(() => {
-    // Initialize user from localStorage if available
-    return authService.getUser();
-  });
+  // Initialize user as null to avoid hydration mismatch
+  // We'll load from localStorage in useEffect (client-side only)
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const validateToken = async (): Promise<boolean> => {
@@ -88,6 +87,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return false;
     }
   };
+
+  // Load user from localStorage on client-side mount (to avoid hydration mismatch)
+  useEffect(() => {
+    const savedUser = authService.getUser();
+    if (savedUser) {
+      setUser(savedUser);
+    }
+  }, []);
 
   useEffect(() => {
     // Check if user is logged in when component mounts
