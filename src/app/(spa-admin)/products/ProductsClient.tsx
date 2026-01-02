@@ -19,14 +19,26 @@ export default function ProductsClient() {
   const [isError, setIsError] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>('');
   const [perPage] = useState<number>(10);
   const hasShownErrorRef = useRef<boolean>(false);
 
-  const fetchProducts = async (page: number) => {
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      setCurrentPage(1); // Reset to first page when search changes
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const fetchProducts = async (page: number, search?: string) => {
     setIsLoading(true);
     try {
       const [productsResponse, categoriesResponse] = await Promise.all([
-        getProducts(page, perPage),
+        getProducts(page, perPage, search),
         getCategoryOptions()
       ]);
       
@@ -61,12 +73,16 @@ export default function ProductsClient() {
   };
 
   useEffect(() => {
-    fetchProducts(currentPage);
+    fetchProducts(currentPage, debouncedSearchTerm);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage]);
+  }, [currentPage, debouncedSearchTerm]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+  };
+
+  const handleSearchChange = (search: string) => {
+    setSearchTerm(search);
   };
 
   return (
@@ -77,6 +93,8 @@ export default function ProductsClient() {
       isError={isError}
       isLoading={isLoading}
       onPageChange={handlePageChange}
+      searchTerm={searchTerm}
+      onSearchChange={handleSearchChange}
     />
   );
 }

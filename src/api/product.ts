@@ -45,12 +45,18 @@ export const initializeFormData = (form: ProductFormData, availableLanguages: La
 };
 
 // Get list of products
-export const getProducts = async (page: number = 1, perPage: number = 10): Promise<AxiosResponse<ProductListResponse>> => {
+export const getProducts = async (page: number = 1, perPage: number = 10, search?: string): Promise<AxiosResponse<ProductListResponse>> => {
+  const params: Record<string, string | number> = {
+    page,
+    per_page: perPage,
+  };
+  
+  if (search && search.trim()) {
+    params.search = search.trim();
+  }
+  
   return await request.get('products', {
-    params: {
-      page,
-      per_page: perPage,
-    },
+    params,
   });
 };
 
