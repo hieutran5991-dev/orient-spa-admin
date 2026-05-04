@@ -38,6 +38,7 @@ jobs:
           NEXT_STORAGE_HOST: ${{ secrets.NEXT_STORAGE_HOST }}
           NEXT_STORAGE_PORT: ${{ secrets.NEXT_STORAGE_PORT }}
 
+      # Small tarball: dependencies are installed on the VPS (see extract step). Keeps node_modules across deploys there so yarn mostly reconciles instead of a full download every time.
       - name: Create deployment package
         run: |
           mkdir -p deployment
@@ -57,6 +58,7 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
+          command_timeout: 30m
           script: |
             # Create application directory if it doesn't exist
             sudo mkdir -p /var/www/spa-admin
@@ -65,9 +67,6 @@ jobs:
             # Stop the application if it's running with PM2
             pm2 stop spa-admin || true
 
-            # Clean existing deployment but keep node_modules
-            rm -rf /var/www/spa-admin/*
-
       - name: Copy deployment package to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -75,6 +74,7 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
+          command_timeout: 30m
           source: 'deployment.tar.gz'
           target: '/var/www/spa-admin/'
 
@@ -85,24 +85,31 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
+          command_timeout: 30m
           script: |
             cd /var/www/spa-admin
 
-            # Extract deployment package
-            tar -xzf deployment.tar.gz
-            rm deployment.tar.gz
+            # Keep existing node_modules aside so yarn can reuse most packages after replacing .next (full wipe would force a long reinstall every time).
+            NM_BACKUP=""
+            if [ -d node_modules ]; then
+              NM_BACKUP=$(mktemp -d /tmp/spa-admin-nm.XXXXXX)
+              mv node_modules "$NM_BACKUP/"
+            fi
+            rm -rf /var/www/spa-admin/*
+            if [ -n "$NM_BACKUP" ] && [ -d "$NM_BACKUP/node_modules" ]; then
+              mv "$NM_BACKUP/node_modules" .
+              rmdir "$NM_BACKUP" 2>/dev/null || rm -rf "$NM_BACKUP"
+            fi
 
-            echo "Installing dependencies on VPS..."
-            yarn install --production --frozen-lockfile
+            tar -xzf deployment.tar.gz
+            rm -f deployment.tar.gz
+
+            # Install production deps on server (--network-timeout avoids flaky networks failing fast)
+            yarn install --frozen-lockfile --production --network-timeout 600000
 
             # Set proper permissions
             sudo chown -R $USER:$USER /var/www/spa-admin
             sudo chmod -R 755 /var/www/spa-admin
-
-            # Install TypeScript and wait for completion
-            echo "Installing TypeScript..."
-            yarn add -D --exact typescript
-            echo "TypeScript installation completed"
 
             # Start the application with PM2
             pm2 start ecosystem.config.js
