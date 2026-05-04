@@ -92,6 +92,9 @@ jobs:
             tar -xzf deployment.tar.gz
             rm deployment.tar.gz
 
+            echo "Installing dependencies on VPS..."
+            yarn install --production --frozen-lockfile
+
             # Set proper permissions
             sudo chown -R $USER:$USER /var/www/spa-admin
             sudo chmod -R 755 /var/www/spa-admin
