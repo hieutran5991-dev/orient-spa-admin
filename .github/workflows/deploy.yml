@@ -87,6 +87,11 @@ jobs:
           port: ${{ secrets.VPS_PORT }}
           command_timeout: 30m
           script: |
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" 
+            
+            node -v # Kiểm tra xem đã ra v25 chưa
+
             cd /var/www/spa-admin
 
             # Overlay new release onto the folder (no full rm). Tar replaces paths present in the archive; yarn updates node_modules to match yarn.lock.
@@ -103,6 +108,7 @@ jobs:
             # Start the application with PM2
             pm2 start ecosystem.config.js
             pm2 save
+            pm2 update
 
             # Check application status
             sleep 5
