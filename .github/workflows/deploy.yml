@@ -38,7 +38,7 @@ jobs:
           NEXT_STORAGE_HOST: ${{ secrets.NEXT_STORAGE_HOST }}
           NEXT_STORAGE_PORT: ${{ secrets.NEXT_STORAGE_PORT }}
 
-      # Small tarball: dependencies are installed on the VPS (see extract step). Keeps node_modules across deploys there so yarn mostly reconciles instead of a full download every time.
+      # Small tarball: dependencies are installed on the VPS (see extract step). Extract overlays existing files; yarn then reconciles node_modules.
       - name: Create deployment package
         run: |
           mkdir -p deployment
@@ -89,18 +89,7 @@ jobs:
           script: |
             cd /var/www/spa-admin
 
-            # Keep existing node_modules aside so yarn can reuse most packages after replacing .next (full wipe would force a long reinstall every time).
-            NM_BACKUP=""
-            if [ -d node_modules ]; then
-              NM_BACKUP=$(mktemp -d /tmp/spa-admin-nm.XXXXXX)
-              mv node_modules "$NM_BACKUP/"
-            fi
-            rm -rf /var/www/spa-admin/*
-            if [ -n "$NM_BACKUP" ] && [ -d "$NM_BACKUP/node_modules" ]; then
-              mv "$NM_BACKUP/node_modules" .
-              rmdir "$NM_BACKUP" 2>/dev/null || rm -rf "$NM_BACKUP"
-            fi
-
+            # Overlay new release onto the folder (no full rm). Tar replaces paths present in the archive; yarn updates node_modules to match yarn.lock.
             tar -xzf deployment.tar.gz
             rm -f deployment.tar.gz
 
