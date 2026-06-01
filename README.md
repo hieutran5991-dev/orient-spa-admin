@@ -165,6 +165,37 @@ A major update focused on Next.js 15 implementation and comprehensive redesign.
 - Enhanced multiselect functionality
 - Added default layout component
 
+## Deploy to Cloudflare Workers
+
+This admin app deploys with [@opennextjs/cloudflare](https://opennext.js.org/cloudflare). Worker name: `orient-spa-admin` (see `wrangler.jsonc`).
+
+### Environment variables
+
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google OAuth client ID |
+| `NEXT_PUBLIC_API_URL` | Backend API URL |
+| `NEXT_STORAGE_HOST` | Image storage host |
+| `NEXT_STORAGE_PORT` | Image storage port |
+
+### Local deploy
+
+```bash
+npx wrangler login
+npm run deploy
+```
+
+### GitHub Actions
+
+Workflow: `.github/workflows/deploy-cloudflare.yml` (runs on push to `main`).
+
+Repository **Secrets** required:
+
+- `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
+- `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, `NEXT_PUBLIC_API_URL`, `NEXT_STORAGE_HOST`, `NEXT_STORAGE_PORT`
+
+Add your Cloudflare Workers admin URL to Google OAuth **Authorized JavaScript origins** (e.g. `https://orient-spa-admin.<account>.workers.dev`).
+
 ## License
 
 TailAdmin Next.js Free Version is released under the MIT License.
